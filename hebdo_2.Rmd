@@ -1,0 +1,56 @@
+---
+title: 'Rapport hebdomadaire stage #2'
+author: "Alix Biton"
+date: "2026-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 2 (19-23/01)
+
+### Objectifs 
+
+ - Récupérer les données d'élévation sur Copernicus DEM
+ - Comprendre la fonction `hillShade()` du package `raster`
+ - Compute l'exposition topographique au vent sur la zone de Mayotte
+ 
+### Copernicus DEM 
+
+#### Copernicus Browser
+
+Pour récupérer les données d'altitudes d'une zone géographique, il faut aller dans le **Copernicus Browser**, onglet **Visualise**. Il faut ensuite cadrer avec le polygone/carré la zone d'intérêt, en l'occurence ici, la zone de Mayotte. Laisser le mode Configuration sur **Default** et choisir dans Data Collections **Copernicus DEM** et choisir **Copernicus 30**. Pour télécharger le fichier `.tiff`, appuyer sur l'icône **Download Image** sur la barre d'icônes à droite de la page. Aller dans l'onglet **Analytical** et ici : 
+
+  - Image format : **TIFF (32-bit float)**, équivalent du format DGED
+  - Image resolution : **CUSTOM -> 30x30**, équivalent du GLO30
+  - Coordinate System : **WGS 84 (EPSG:4326)**
+  - Layers : **Raw -> DEM** 
+
+Cliquer sur **Download** et un fichier `.tiff` est téléchargé. 
+
+Visualisation de l'élévation de Mayotte (avec le package `raster`)
+
+```{r include=FALSE}
+library(raster)
+dem <- raster("/home/abiton/Téléchargements/mayotte_dem_glo30.tiff")
+``` 
+
+```{r plot-dem-mayotte, warning=F,message = F,echo = F} 
+plot(dem, main = "Copernicus DEM -Mayotte")
+```
+
+#### Requête HTTPS avec OData 
+
+Pour effectuer une requête des données Copernicus_DEM_GLO30_DGED sans utiliser Copernicus Browser, on utilise **OData**. 
+Dans le terminal il faut d'abord s'identifier et obtenir un token avec la commande : 
+```{}
+ACCESS_TOKEN=$(curl -s \
+  -d "grant_type=password" \
+  -d "client_id=cdse-public" \  -d "scope=openid profile email" \
+  -d "username=biton.alix@gmail.com" \
+  -d "password=ryWvox-fishum-qoxhu8" \
+  https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token \
+  | jq -r .access_token)
+``` 

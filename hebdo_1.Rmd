@@ -1,0 +1,110 @@
+---
+title: "Rapport hebdomadaire stage #1"
+author: "Alix Biton"
+date: "2026-01-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 1 (12-16/01)
+
+### Objectifs 
+
+ - Prise en main du package StormR
+ - Implémentation d'une fonction simple et la tester
+ - Compiler le package (`load_all`)
+ - Tester le package avec le cyclone Chido
+
+En bonus, apprendre à utiliser `RMarkdown`pour faire mes rapports hebdomadaires ! 
+
+### Implémentation fonction
+
+Création d'une fonction `roll_dice` très simple simulant le lancement d'un nombre de dés `num_dice` et sommant le résultat de ces dés à 10 faces. 
+
+```{r include = F}
+library(testthat)
+roll_dice <- function(num_dice){
+  
+  if(num_dice != as.integer(num_dice)){
+    stop("num_dice must be an integer")
+  }
+  if(num_dice<0){
+    stop("num_dice must be >= 0")
+  }
+  
+  dice <- sample(1:10,num_dice,replace=T)
+  sum_dice <- sum(dice)
+  
+  out <- c(num_dice,sum_dice)
+  names(out)<- c("num_dice","sum_dice")
+  return(out)
+}
+```
+
+```{r}
+roll_dice(2)
+```
+
+Et test de cette fonction avec l'utilisation du package `testthat`
+```{r}
+test_that("Rolling no dice should be zero", {
+  expect_equal(roll_dice(0),c(num_dice=0,sum_dice=0))
+  expect_true(roll_dice(1)["sum_dice"] <= 10)
+})
+```
+
+Puis utilisation de la commande `load_all` afin de charger le package correctement modifié avec la nouvelle fonction. 
+
+### Test du package StormR 
+
+Compréhension de la récupération des données avec la fonction `defStormsDataset()`. Cette fonction vient créer une dataset complet avec les variables d'intérêts, les bonnes unités etc... base de l'étude avec ce package.
+Ensuite il y a la création de la liste des cyclones d'intérêts avec la fonction `defStormsList(), ici essai sur le cyclone de **Chido** donc le filtrage se fera seulement sur le nom. Cette fonction renvoie toutes les informations trouvées pour le cyclone Chido. Ici, il y a eu 47 mesures effectuées sur ce cyclone. 
+```{r include = F}
+devtools::load_all("/home/abiton/Documents/StormR")
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  sep = NULL,
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+  lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+  rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  unitConversion = c(msw = "knt2ms", rmw = "nm2km", pressure = "mb2pa", poci = "mb2pa"),
+  notNamed = "NOT_NAMED",
+  verbose = 1
+)
+
+chido_storm <- defStormsList(
+  sds = sds,
+  loi = "SI",
+  names = c("CHIDO"),
+  maxDist = 300,
+  scale = sshs,
+  scalePalette = NULL,
+  removeUnder = NULL,
+  verbose = 2
+)
+```
+On peut donc visualiser ces mesures spatialement grâce à la fonction `plotStorms()`
+
+```{r plot-chido, warning=F,message = F,echo = F}
+plotStorms(
+  sts = chido_storm,
+  names = "CHIDO",
+  legends = "bottomleft",
+  dynamicPlot = F #si T, carte interactive avec points de mesure 
+)
+```
+
+Ensuite, test des fonctions `temporalBehaviour()`et `spatialBehaviour()`. La première renvoie les informations temporelles sur le vent en certains points pour plusieurs métriques : 
+
+ -  **TS** : direction et vitesse du vent 
+ -  **PDI** : capacité de dissipation correspondant à l'énergie cinétique dissipée par le cyclone
+ -  **Exposure** : temps d'exposition au vent selon les seuils de catégorie de l'échelle SSHWS
+ 
+La seconde renvoie des informations spatiales avec la création d'un raster. Ici aussi plusieurs métriques possibles, cependant, pendant les tests, la métrique `Profiles` et `Exposure` lors des tests a fait planter la session R. Résultats possibles pour `MSW`, le Markdown n'a pas supporté et ca a fait arrêter la session R. 
+
+A tester sur le fichier R : tests_pack.R
