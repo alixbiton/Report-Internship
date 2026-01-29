@@ -146,6 +146,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="nav-link active" href="./computeTopo.html" aria-current="page"> 
 <span class="menu-text">Exposition Topographique</span></a>
   </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-travaux-en-cours" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Travaux en cours</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-travaux-en-cours">    
+        <li>
+    <a class="dropdown-item" href="./openeo.html">
+ <span class="dropdown-text">Récupérer données</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
     <a class="nav-link" href="./about.html"> 
 <span class="menu-text">A propos</span></a>
@@ -215,8 +226,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Pour utiliser la fonction <code>terra::shade()</code>, il faut un angle et une direction. L’angle utilisé sera l’angle d’inflexion de 6° (Boose et al.1994). Pour la direction, on veut récupérer la direction que prend le vent lorsque sa vitesse est maximale dans un layer c’est-à-dire la direction de la cellule ayant le Vmax.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="./home/abiton/Documents/Report-Internship/schema_topo.png" title="Schéma explicatif de la fonction computeTopo()" class="img-fluid figure-img"></p>
-<figcaption>Schéma explicatif fonction</figcaption>
+<p><img src="schema_topo.png" class="img-fluid figure-img"></p>
+<figcaption>Schéma explicatif de la fonction “computeExposure()”</figcaption>
 </figure>
 </div>
 <p>Les valeurs négatives représente les aires protégées du vent tandis que les valeurs positives représente les aires exposées au vent.</p>
