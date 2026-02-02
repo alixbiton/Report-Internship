@@ -299,10 +299,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="co"># for chido, need to find dates without to much clouds</span></span>
 <span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co"># before chido</span></span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2024-10-22T00:00:00Z"</span>, <span class="st">"2024-10-22T23:59:59Z"</span>, <span class="st">"ndvi_avant_chido.tif"</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2024-10-22"</span>, <span class="st">"2024-12-10"</span>, <span class="st">"ndvi_avant_chido.tif"</span>)</span>
 <span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co"># after chido</span></span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2025-02-24T00:00:00Z"</span>, <span class="st">"2025-02-24T23:59:59Z"</span>, <span class="st">"ndvi_apres_chido.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2025-01-01"</span>, <span class="st">"2025-03-15"</span>, <span class="st">"ndvi_apres_chido.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Afin de gérer les nuages, il y a l’option <code>cloud_cover</code>, définit ici à 30%. Seules les données avec 30% ou moins de nuages sont gardées. On obtient donc des données de végétation avant-après Chido.</p>
 <div class="cell" data-layout-align="center">
@@ -338,6 +338,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
+<p>Au vu de ces réusltats pour ces intervalles de temps, le moins pertinent serait de prendre la valeur minimale pour visualiser la végétation car c’est surement la valeur capté au travers d’un nuage et est non représentative ed la réelle végétation de Mayotte. Les valeurs les plus pertinentes seraient la valeur max pour estimer correctement la végétation réelle captée par Sentinel. C’est la visualisation avec le moins l’effet des nuages. Cependant, on voit les démarcations des tuiles ici.</p>
+<p>Les valeurs médianes et moyennes sont pertinentes mais peuvent être impactées par la présence de nuages et ainsi retranscrire une mauvaise détection du réel indice NDVI en tout points.</p>
 
 
 </section>
