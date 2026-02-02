@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Alix Biton">
-<meta name="dcterms.date" content="2026-01-14">
+<meta name="dcterms.date" content="2028-02-01">
 
-<title>Rapport hebdomadaire stage #1 – reports</title>
+<title>Rapport hebdomadaire stage #2 – reports</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -181,11 +181,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#semaine-1-12-1601" id="toc-semaine-1-12-1601" class="nav-link active" data-scroll-target="#semaine-1-12-1601">Semaine 1 (12-16/01)</a>
+  <li><a href="#semaine-3-26-3001" id="toc-semaine-3-26-3001" class="nav-link active" data-scroll-target="#semaine-3-26-3001">Semaine 3 (26-30/01)</a>
   <ul class="collapse">
   <li><a href="#objectifs" id="toc-objectifs" class="nav-link" data-scroll-target="#objectifs">Objectifs</a></li>
-  <li><a href="#implémentation-fonction" id="toc-implémentation-fonction" class="nav-link" data-scroll-target="#implémentation-fonction">Implémentation fonction</a></li>
-  <li><a href="#test-du-package-stormr" id="toc-test-du-package-stormr" class="nav-link" data-scroll-target="#test-du-package-stormr">Test du package StormR</a></li>
+  <li><a href="#computeexposure" id="toc-computeexposure" class="nav-link" data-scroll-target="#computeexposure">computeExposure</a></li>
+  </ul></li>
+  <li><a href="#paramètres" id="toc-paramètres" class="nav-link" data-scroll-target="#paramètres">Paramètres</a></li>
+  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a>
+  <ul class="collapse">
+  <li><a href="#openeo" id="toc-openeo" class="nav-link" data-scroll-target="#openeo">OpenEO</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -195,7 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Rapport hebdomadaire stage #1</h1>
+<h1 class="title">Rapport hebdomadaire stage #2</h1>
 </div>
 
 
@@ -212,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 14, 2026</p>
+      <p class="date">February 1, 2028</p>
     </div>
   </div>
   
@@ -224,61 +228,49 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="semaine-1-12-1601" class="level2">
-<h2 class="anchored" data-anchor-id="semaine-1-12-1601">Semaine 1 (12-16/01)</h2>
+<section id="semaine-3-26-3001" class="level2">
+<h2 class="anchored" data-anchor-id="semaine-3-26-3001">Semaine 3 (26-30/01)</h2>
 <section id="objectifs" class="level3">
 <h3 class="anchored" data-anchor-id="objectifs">Objectifs</h3>
 <ul>
-<li>Prise en main du package StormR</li>
-<li>Implémentation d’une fonction simple et la tester</li>
-<li>Compiler le package (<code>load_all</code>)</li>
-<li>Tester le package avec le cyclone Chido</li>
+<li>Déterminer output et paramètres de la fonction <code>computeExposure</code></li>
+<li>Enregistrer les données DEM et Sentinel</li>
+<li>Bibliographie et écriture du rapport bibliographique</li>
 </ul>
-<p>En bonus, apprendre à utiliser <code>RMarkdown</code>pour faire mes rapports hebdomadaires !</p>
 </section>
-<section id="implémentation-fonction" class="level3">
-<h3 class="anchored" data-anchor-id="implémentation-fonction">Implémentation fonction</h3>
-<p>Création d’une fonction <code>roll_dice</code> très simple simulant le lancement d’un nombre de dés <code>num_dice</code> et sommant le résultat de ces dés à 10 faces.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">roll_dice</span>(<span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>num_dice sum_dice 
-       2        2 </code></pre>
-</div>
-</div>
-<p>Et test de cette fonction avec l’utilisation du package <code>testthat</code></p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test_that</span>(<span class="st">"Rolling no dice should be zero"</span>, {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect_equal</span>(<span class="fu">roll_dice</span>(<span class="dv">0</span>),<span class="fu">c</span>(<span class="at">num_dice=</span><span class="dv">0</span>,<span class="at">sum_dice=</span><span class="dv">0</span>))</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect_true</span>(<span class="fu">roll_dice</span>(<span class="dv">1</span>)[<span class="st">"sum_dice"</span>] <span class="sc">&lt;=</span> <span class="dv">10</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Test passed with 2 successes 😸.</code></pre>
-</div>
-</div>
-<p>Puis utilisation de la commande <code>load_all</code> afin de charger le package correctement modifié avec la nouvelle fonction.</p>
+<section id="computeexposure" class="level3">
+<h3 class="anchored" data-anchor-id="computeexposure">computeExposure</h3>
+<p>Après la réunion, plusieurs idées émergent pour décrire et développer la fonction <code>computeExposure()</code> qui calcule l’exposition topographique au vent.</p>
 </section>
-<section id="test-du-package-stormr" class="level3">
-<h3 class="anchored" data-anchor-id="test-du-package-stormr">Test du package StormR</h3>
-<p>Compréhension de la récupération des données avec la fonction <code>defStormsDataset()</code>. Cette fonction vient créer une dataset complet avec les variables d’intérêts, les bonnes unités etc… base de l’étude avec ce package. Ensuite il y a la création de la liste des cyclones d’intérêts avec la fonction `defStormsList(), ici essai sur le cyclone de <strong>Chido</strong> donc le filtrage se fera seulement sur le nom. Cette fonction renvoie toutes les informations trouvées pour le cyclone Chido. Ici, il y a eu 47 mesures effectuées sur ce cyclone.</p>
-<p>On peut donc visualiser ces mesures spatialement grâce à la fonction <code>plotStorms()</code></p>
+</section>
+<section id="paramètres" class="level2">
+<h2 class="anchored" data-anchor-id="paramètres">Paramètres</h2>
+<p>Dans l’idée, la fonction aurait plusieurs paramètres indispensables de données ainsi que des paramètres optionnels. Au premier abord la fonction ressemblerait à :</p>
 <div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="hebdo_1_files/figure-html/plot-chido-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">computeExposure</span>(pf, dem, <span class="at">names =</span> ,<span class="at">angle =</span> <span class="dv">6</span>, <span class="at">threshold =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</div>
-</div>
-<p>Ensuite, test des fonctions <code>temporalBehaviour()</code>et <code>spatialBehaviour()</code>. La première renvoie les informations temporelles sur le vent en certains points pour plusieurs métriques :</p>
 <ul>
-<li><strong>TS</strong> : direction et vitesse du vent</li>
-<li><strong>PDI</strong> : capacité de dissipation correspondant à l’énergie cinétique dissipée par le cyclone</li>
-<li><strong>Exposure</strong> : temps d’exposition au vent selon les seuils de catégorie de l’échelle SSHWS</li>
+<li>Le paramètre <code>pf</code> correspond aux profiles (spatRaster) issus de la fonction <code>spatialBehaviour()</code> avec les informations de vitesse et de direction des cyclones.</li>
+<li>Le paramètre <code>dem</code> correspond aux données d’élévation (de relief) pour une loi (en .tif ou .tiff).</li>
+<li>Le paramètre <code>names</code> correspond au nom du cyclone sur le(s)quel(s) on veut l’exposition topographique.</li>
+<li>Le paramètre <code>angle</code>correspond à l’angle d’inflexion du vent, par défaut il est à 6° (Boose.E.R, 1994).</li>
+<li>Le paramètre <code>threshold</code> correspond à un seuil de vitesse sur lequel on veut garder les informations. Par défaut, on ne garde que les profiles ayant une vitesse maximale supérieure ou égale à 50m/s (Catégorie 3 des cyclones) pour calculer l’exposition topographique.</li>
 </ul>
-<p>La seconde renvoie des informations spatiales avec la création d’un raster. Ici aussi plusieurs métriques possibles, cependant, pendant les tests, la métrique <code>Profiles</code> et <code>Exposure</code> lors des tests a fait planter la session R. Résultats possibles pour <code>MSW</code>, le Markdown n’a pas supporté et ca a fait arrêter la session R.</p>
-<p>A tester sur le fichier R : tests_pack.R</p>
+</section>
+<section id="output" class="level2">
+<h2 class="anchored" data-anchor-id="output">Output</h2>
+<p>L’output de la fonction <code>computeExposure</code> est un spatRaster avec autant de raster qu’il y a d’observations pour chaque cyclone. La terminologie des couches du spatRaster est comme ceci : STORM_Exposure_01. Cela reprend la syntaxe des profiles de spatialBehaviour().</p>
+<p>Cet output ne résume pas bien l’exposition topographqiue au vent de l’entièreté du cyclone d’intérêt donc il faudrait, une manière de visualiser des donénes résumant bien l’ensemble du cyclone. Il faut donc peut être une autre fonction <code>integrateExposure()</code> ayant comme output des produits intégrés de l’exposition topographique.</p>
+<p>Il y aurait les produits suivants :</p>
+<ul>
+<li><strong>Max</strong> qui ressort le profile d’Exposure ayant eu le maximum d’exposition (la cellule ou l’exposition était maximale)</li>
+<li><strong>Mean</strong> qui ressort le profile d’Exposure ayant eu le maximum d’exposition en moyenne (sur l’ensemble du raster ou l’exposition était la plus élevée)</li>
+</ul>
+<p>Enfin, il faudrait une dernière fonction qui permette de visualiser les ourtput nommée par exemple <code>plotExposure()</code> qui reste très simple, dans la même idée que plotBehaviour().</p>
+<section id="openeo" class="level3">
+<h3 class="anchored" data-anchor-id="openeo">OpenEO</h3>
+<p>Pour récupérer les données de DEM et de végétation avec Sentinel L2A, il y a le package R <code>openEO</code> qui est facile d’utilisation et permet de choisir la zone d’intérêt sans avoir à se prendre la tête sur les tuiles. Il suffit d’avoir le polygone d’intérêt et que les données voulues soient disponibles dans les collections openEO. Il faut aussi un compte Copernicus.</p>
+<p>La démarche et le code est expliqué dans le panel <strong>Travaux en Cours</strong> –&gt; <strong>Récupérer données</strong></p>
 
 
 </section>
