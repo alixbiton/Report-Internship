@@ -1,0 +1,164 @@
+---
+title: "OpenEO data"
+author: "Alix Biton"
+date: "2026-01-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## OpenEO
+
+OpenEO est un package R qui permet d'obtenir les données Earth Observation. Afin d'accéder à ces données, il est nécéssaire de se connecter. Ici il faut donc avoir un compte Copernicus. Le lien de documentation d'utilisation : <https://documentation.dataspace.copernicus.eu/APIs/openEO/R_Client/R.html>
+
+```{r connection, eval=FALSE}
+library(openeo)
+# connect to the backend and authenticate
+connection = connect(host = "https://openeofed.dataspace.copernicus.eu")
+login()
+
+# get the process collection to use the predefined processes of the back-end
+p = processes()
+```
+
+## Données DEM30
+
+Pour récupérer les données d'élévation Copernicus DEM30, il faut délimiter notre loi. Afin de récupérer le bounding box de Mayotte, j'ai récupérer les coordonnées ici : <http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000>
+
+```{r data, eval=FALSE}
+data = p$load_collection(id = 'COPERNICUS_30',
+                         spatial_extent = list(west=44.98, 
+                                               south=-13.01,
+                                               east=45.30,
+                                               north=-12.61),
+                         bands = c("DEM"))
+```
+
+Ensuite, on peut sauver nos données dans le format souhaité et l'enregistrer en local.
+
+```{r result, eval = FALSE}
+result = p$save_result(data = data, format = "GTiff")
+
+# save the tif file
+compute_result(graph = result, output_file = "/home/abiton/Documents/dem_data/dem_mayotte.tif")
+```
+
+## Données Sentinel
+
+Pour récupérer les données de végétation, on utilise le même principe mais avec une dimension temporelle en plus. Les données à utiliser pour calculer le NDVI sont les bandes 8 et 4 des données Sentinel L2A. 
+Dans mon cas, je cherche à avoir le NDVI avant le cyclone CHIDO et le NDVI après le cyclone donc je dois récupérer à deux temporalités différentes. 
+
+```{r sentinel, eval = FALSE} 
+bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
+dossier_out = "/home/abiton/Documents/dem_data" 
+
+# function to compute ndvi
+get_ndvi_period = function(start_date, end_date, filename) {
+  
+  # charge data
+  data = p$load_collection(
+    id = "SENTINEL2_L2A",
+    spatial_extent = bbox,
+    temporal_extent = list(start_date, end_date),
+    bands = c("B08","B04"),
+    properties = list("eo:cloud_cover" = function(x) x <= 30) 
+    # gerer les nuages avec cloud_cover, garde que moins de 30% nuages
+  )
+  
+  # compute ndvi
+  # ndvi_cube = p$ndvi(data = data, nir = "B08", red = "B04")
+  
+  #manually compute ndvi
+  spectral_reduce = p$reduce_dimension(data = data, dimension = "bands",reducer = function(data,context) {
+    b8 = data[1] #nir
+    b4 = data[2] #red
+    
+    return((b8-b4)/(b8+b4))
+  })
+  
+  temporal_reduce = p$reduce_dimension(data=spectral_reduce,dimension = "t", reducer = function(x,y){
+    p$median(x)
+  })
+  
+  # save data
+  result = p$save_result(data = temporal_reduce, format = "GTiff")
+  compute_result(graph = result, output_file = file.path(dossier_out, filename))
+}
+
+# for chido, need to find dates without to much clouds
+
+# before chido
+get_ndvi_period("2024-10-22", "2024-12-10", "ndvi_avant_chido.tif")
+
+# after chido
+get_ndvi_period("2025-01-01", "2025-03-15", "ndvi_apres_chido.tif")
+```
+
+Afin de gérer les nuages, il y a l'option `cloud_cover`, définit ici à 30%. Seules les données avec 30% ou moins de nuages sont gardées. 
+On obtient donc des données de végétation avant-après Chido. 
+
+```{r plot-ndvi, warning=F,message = F,echo = F, fig.align='center'}
+library(terra)
+s2_before <- rast("/home/abiton/Documents/dem_data/ndvi_avant_chido.tif")
+s2_after <- rast("/home/abiton/Documents/dem_data/ndvi_apres_chido.tif")
+
+s_stack <- c(s2_before, s2_after)
+limits_ndvi <- c(-1,1)
+plot(s_stack,
+     nc = 2, range = limits_ndvi,
+     main = c("NDVI before", "NDVI after"))
+```
+
+### Tests métriques
+
+Dans la fonction utilisée, j'ai utilisé la métrique mediane, mais il y a d'autres métriques tel que le max, le min, le median et le mean. 
+
+Voici les différences de visualisations du NDVI pour le même intervalle de temps pour chaque métrique. L'intervalle de temps ici est pour la période :
+
+-  avant CHIDO : 2024-10-22 2024-12-10
+-  après CHIDO : 2025-01-01, 2025-03-15
+
+```{r plot metrics, warning = F, message = F, echo = F, fig.align = 'center'}
+## with max metric ####
+
+s2_before_max <- rast("/home/abiton/Documents/dem_data/ndvi_avant_chido_max.tif")
+s2_after_max <- rast("/home/abiton/Documents/dem_data/ndvi_apres_chido_max.tif")
+
+## with min metric ####
+
+s2_before_min <- rast("/home/abiton/Documents/dem_data/ndvi_avant_chido_min.tif")
+s2_after_min <- rast("/home/abiton/Documents/dem_data/ndvi_apres_chido_min.tif")
+
+## with mean metric ####
+
+s2_before_mean <- rast("/home/abiton/Documents/dem_data/ndvi_avant_chido_mean.tif")
+s2_after_mean <- rast("/home/abiton/Documents/dem_data/ndvi_apres_chido_mean.tif")
+
+## with median metric ####
+
+s2_before_median <- rast("/home/abiton/Documents/dem_data/ndvi_avant_chido_median.tif")
+s2_after_median <- rast("/home/abiton/Documents/dem_data/ndvi_apres_chido_median.tif")
+
+limits_ndvi <- c(-1,1)
+s_stack_maxmin <- c(s2_before_max, s2_after_max, 
+                    s2_before_min, s2_after_min)
+plot(s_stack_maxmin,
+     nc = 2, nr = 2, range = limits_ndvi,
+     main = c("before max", "after max",
+              "before min", "after min"))
+
+s_stack_medmean <- c(s2_before_median, s2_after_median,
+                     s2_before_mean, s2_before_mean)
+
+plot(s_stack_medmean,
+     nc = 2, nr = 2, range = limits_ndvi,
+     main = c("before median", "after median",
+              "before mean", "after mean"))
+
+``` 
+
+Au vu de ces réusltats pour ces intervalles de temps, le moins pertinent serait de prendre la valeur minimale pour visualiser la végétation car c'est surement la valeur capté au travers d'un nuage et est non représentative ed la réelle végétation de Mayotte. Les valeurs les plus pertinentes seraient la valeur max pour estimer correctement la végétation réelle captée par Sentinel. C'est la visualisation avec le moins l'effet des nuages. Cependant, on voit les démarcations des tuiles ici. 
+
+Les valeurs médianes et moyennes sont pertinentes mais peuvent être impactées par la présence de nuages et ainsi retranscrire une mauvaise détection du réel indice NDVI en tout points.

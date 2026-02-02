@@ -1,0 +1,56 @@
+---
+title: "Rapport hebdomadaire stage #2"
+author: "Alix Biton"
+date: "2026-26-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 3 (26-30/01)
+
+### Objectifs
+
+-   Déterminer output et paramètres de la fonction `computeExposure`
+-   Enregistrer les données DEM et Sentinel
+-   Bibliographie et écriture du rapport bibliographique
+
+### computeExposure
+
+Après la réunion, plusieurs idées émergent pour décrire et développer la fonction `computeExposure()` qui calcule l'exposition topographique au vent.
+
+## Paramètres
+
+Dans l'idée, la fonction aurait plusieurs paramètres indispensables de données ainsi que des paramètres optionnels. Au premier abord la fonction ressemblerait à :
+
+```{r computeExp, eval = FALSE}
+
+computeExposure(pf, dem, names = ,angle = 6, threshold = 50)
+```
+
+-   Le paramètre `pf` correspond aux profiles (spatRaster) issus de la fonction `spatialBehaviour()` avec les informations de vitesse et de direction des cyclones.
+-   Le paramètre `dem` correspond aux données d'élévation (de relief) pour une loi (en .tif ou .tiff).
+-   Le paramètre `names` correspond au nom du cyclone sur le(s)quel(s) on veut l'exposition topographique.
+-   Le paramètre `angle`correspond à l'angle d'inflexion du vent, par défaut il est à 6° (Boose.E.R, 1994).
+-   Le paramètre `threshold` correspond à un seuil de vitesse sur lequel on veut garder les informations. Par défaut, on ne garde que les profiles ayant une vitesse maximale supérieure ou égale à 50m/s (Catégorie 3 des cyclones) pour calculer l'exposition topographique.
+
+## Output
+
+L'output de la fonction `computeExposure` est un spatRaster avec autant de raster qu'il y a d'observations pour chaque cyclone. La terminologie des couches du spatRaster est comme ceci : STORM_Exposure_01. Cela reprend la syntaxe des profiles de spatialBehaviour().
+
+Cet output ne résume pas bien l'exposition topographqiue au vent de l'entièreté du cyclone d'intérêt donc il faudrait, une manière de visualiser des donénes résumant bien l'ensemble du cyclone. Il faut donc peut être une autre fonction `integrateExposure()` ayant comme output des produits intégrés de l'exposition topographique.
+
+Il y aurait les produits suivants :
+
+-   **Max** qui ressort le profile d'Exposure ayant eu le maximum d'exposition (la cellule ou l'exposition était maximale)
+-  **Mean** qui ressort le profile d'Exposure ayant eu le maximum d'exposition en moyenne (sur l'ensemble du raster ou l'exposition était la plus élevée)
+
+Enfin, il faudrait une dernière fonction qui permette de visualiser les ourtput nommée par exemple `plotExposure()` qui reste très simple, dans la même idée que plotBehaviour(). 
+
+### OpenEO 
+
+Pour récupérer les données de DEM et de végétation avec Sentinel L2A, il y a le package R `openEO` qui est facile d'utilisation et permet de choisir la zone d'intérêt sans avoir à se prendre la tête sur les tuiles. Il suffit d'avoir le polygone d'intérêt et que les données voulues soient disponibles dans les collections openEO. Il faut aussi un compte Copernicus. 
+
+La démarche et le code est expliqué dans le panel **Travaux en Cours** --> **Récupérer données**

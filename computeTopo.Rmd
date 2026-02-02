@@ -1,0 +1,146 @@
+---
+title: "Exposition Topographique au vent"
+author: "Alix Biton"
+date: "2026-01-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Description
+
+Fonction permettant de calculer l'exposition topographique au vent pour chaque cellule d'une grille régulière (un raster) pour un certain cyclone tropical ou plusieurs cyclones tropicaux. On appelera cette fonction `computeTopo`.
+
+#### Principe
+
+Pour calculer cette métrique, il faut d'abord récupérer les données de `Profiles` présentes dans la fonction `spatialBehaviour()` ainsi que la pente (`slope`) en radians et l'exposition/orientation des versants (`aspect`) en radians (calculées grâce à la fonction `terra::terrain`).
+
+Dans Ibanez et al.2024, la fonction utilisée pour calculer l'exposition topographique au vent est `raster::hillShade()`. Cependant, ce package n'est pas dans les dépendances du package `StormR` contrairement à `terra`. De plus le package `terra` est un package, plus jeune, de remplacement de `raster`. On utilisera donc la fonction `terra::shade()` pour calculer l'exposition topographique au vent.
+
+Pour utiliser la fonction `terra::shade()`, il faut un angle et une direction. L'angle utilisé sera l'angle d'inflexion de 6° (Boose et al.1994). Pour la direction, on veut récupérer la direction que prend le vent lorsque sa vitesse est maximale dans un layer c'est-à-dire la direction de la cellule ayant le Vmax.
+
+![Schéma explicatif de la fonction "computeExposure()"](schema_topo.png)
+
+Les valeurs négatives représente les aires protégées du vent tandis que les valeurs positives représente les aires exposées au vent.
+
+### Exemple : Chido
+
+Sur le cas du cyclone Chido, j'ai récupéré l'exposition topographique au vent pour chaque mesure prise dans mon loi (location of interest) qui est la zone de Mayotte (\~300km). Cette exposition topographique est décrite comme une variable quantitative **"Exposure"** et peut être lue comme un indice d'exposition au vent pour chaque cellule d'une grille (un raster).
+
+```{r include=FALSE}
+library(terra)
+dem <- rast("/home/abiton/Documents/dem_data/mayotte_dem_glo30.tiff")
+
+devtools::load_all("/home/abiton/Documents/StormR")
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+#get the loi
+map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+which(map_subunits$SUBUNIT=="Mayotte")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+#get chido
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+```
+
+```{r results= "hide", warning = FALSE, message = FALSE}
+pf <- spatialBehaviour(sts, product = "Profiles")
+slope <- terrain(dem, v ="slope", unit = "radians")
+exposition <- terrain(dem, v = "aspect", unit = "radians")
+```
+
+```{r include = FALSE}
+#separation layers of profiles (speed/direction)
+layers_dir <- names(pf)[grep("CHIDO_Direction_", names(pf))]
+layers_msw <- names(pf)[grep("CHIDO_Speed_",names(pf))]
+
+#find the cell where there is maximum speed in each profile mesure
+#and get the direction from this cell
+dir_maxspeed <- numeric(length(layers_msw))
+names(dir_maxspeed) <- layers_dir
+
+for(i in 1:length(layers_msw)) {
+  msw_layer <- pf[[layers_msw[i]]]
+  id_cell_max <- where.max(msw_layer)[1,"cell"]
+  dir_brut <- as.numeric(pf[[layers_dir[i]]][id_cell_max])
+  
+  dir_t <- 90 - dir_brut
+  if(!is.na(dir_t) && dir_t <0){
+    dir_t <- 360+ dir_t
+  }
+  dir_maxspeed[i] <- dir_t
+}
+
+#get the topographic exposure for each profile direction
+expos_all <- numeric(length(layers_dir))
+names(expos_all) <- layers_dir
+rast_exp <- list()
+#set the variable topographic exposure (topo)
+topo <- list()
+
+for(i in 1:length(layers_dir)){
+  layer_name <- layers_dir[i]
+  
+  #extract the direction
+  dir_t <- dir_maxspeed[i]
+  
+  if(!is.na(dir_t)){
+    exp_rast <- shade(slope,exposition,angle = 6, direction = dir_t)
+    
+    layer_name_exp <- gsub("Direction", "Exposure", layers_dir[i])
+    topo[[layer_name_exp]] <- exp_rast
+  } else {
+    expos_all[i] <- NA
+    rast_exp[[i]] <- NULL
+  }
+}
+
+#stock in a raster
+topo <- terra::rast(topo)
+```
+
+On obtient donc un raster appelé ici `topo` comprenant l'exposition topographique au vent à chaque mesure à partir d'une direction. On peut ainsi récupérer le layer ayant la plus haute exposition en moyenne.
+
+```{r plot-expmax, warning=F,message = F,echo = F, fig.align='center'}
+etendue <- ext(topo[[1]])
+x_arrow <- etendue$xmin + (etendue$xmax - etendue$xmin) *0.10
+y_arrow <- etendue$ymin + (etendue$ymax - etendue$ymin) *0.10
+longueur <- 0.02
+
+means <- terra::global(topo,fun = "mean", na.rm = TRUE)
+worst_layer <- topo[[which.max(means$mean)]]
+plot(worst_layer, main = paste("Layer d'Exposition Topographique maximale en moyenne :", names(worst_layer)))
+
+#get the range of directions during the cyclone
+range_dir <- max(dir_maxspeed) - min(dir_maxspeed)
+
+arr_coord <- function(azimut, x0, y0, L){
+  angle <- (90 -(azimut +180))*pi/180
+  return(c(x0 + L * cos(angle), y0+L*sin(angle)))
+}
+
+p1 <- arr_coord(min(dir_maxspeed), x_arrow, y_arrow, longueur)
+p2 <- arr_coord(max(dir_maxspeed), x_arrow, y_arrow, longueur)
+p3 <- arr_coord(dir_maxspeed[which.max(means$mean)], x_arrow,y_arrow,longueur*1.6)
+
+arrows(x_arrow,y_arrow, p1[1],p1[2], col= "white", lwd = 2, length = 0.1)
+arrows(x_arrow,y_arrow, p2[1],p2[2], col= "white", lwd = 2, length = 0.1)
+arrows(x_arrow,y_arrow, p3[1],p3[2], col = "darkred", lwd = 2, length = 0.1)
+```
+
+Les flèches blanches ici représentent l'étendue des directions de vents tout au long du cyclone tandis que la flèche rouge représente la direction pour le layer considéré.
