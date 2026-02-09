@@ -21,9 +21,32 @@ Dans Ibanez et al.2024, la fonction utilisée pour calculer l'exposition topogra
 
 Pour utiliser la fonction `terra::shade()`, il faut un angle et une direction. L'angle utilisé sera l'angle d'inflexion de 6° (Boose et al.1994). Pour la direction, on veut récupérer la direction que prend le vent lorsque sa vitesse est maximale dans un layer c'est-à-dire la direction de la cellule ayant le Vmax.
 
-![Schéma explicatif de la fonction "computeExposure()"](schema_topo.png)
+![Schéma explicatif de la fonction](/images/schema_topo.png)
 
 Les valeurs négatives représente les aires protégées du vent tandis que les valeurs positives représente les aires exposées au vent.
+
+#### Paramètres
+
+Les paramètres de cette fonction sont :
+
+-   **sts** : la StormList contenant les cyclones d'intérêt
+-   **dem** : les données d'élévation (fichier .tif)
+-   **angle** : angle d'inflection du vent (par défaut = 6°)
+-   **threshold** : seuil minimum requis de vent (en m/s) pour calculer l'exposition (par défaut = 0 m/s)
+-   **product** : produits calculés. peut être "Profiles", "Max" ou "Mean"
+-   **verbose** : si la fonction affiche les informations sur le processus ou non (0,1 ou 2)
+
+#### Outputs
+
+Les outputs de cette fonction dépendent du produit indiqué dans les inputs de la fonction.
+
+Les **"Profiles"** renvoient les profils d'exposition topographique au vent à chaque mesure (toutes les 60 min) comme on pourrait le voir dans la fonction spatialBehaviour(). La terminologie de ces outputs sont : *STORM_Exposure_n*
+
+Le **"Max"** renvoie un raster avec l'exposition topographique maximale sur toute la loi. On a récupéré, pour chaque cellule, la valeur maximale d'exposition tout au long du cyclone. La terminologie de cet output est : *STORM_Exposure_Max*
+
+Le **"Mean"** renvoie un raster avec l'exposition topographique moyenne sur toute la loi. On a récupéré, pour chaque cellule, la valeur maximale d'exposition tout au long du cyclone. La terminologie de cet output est : *STORM_Exposure_Mean*
+
+![Outputs possibles de la fonction computeExposure()](/images/schema_outputs.png)
 
 ### Exemple : Chido
 

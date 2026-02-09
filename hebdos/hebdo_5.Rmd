@@ -1,0 +1,21 @@
+---
+title: 'Rapport hebdomadaire 5'
+author: "Alix Biton"
+date: "2026-02-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 4 (09-13/02)
+
+### Objectifs
+
+-   Tester la fonction `computeExposure()` et checker les inputs
+-   Commencer la fonction `plotExposure()`
+-   Voir pour gérer le login() et obtention données DEM dans la fonction
+-   Bibliographie
+-   Ecriture du rapport bibliographique
+

@@ -1,5 +1,5 @@
 ---
-title: "Rapport hebdomadaire stage #1"
+title: "Rapport hebdomadaire 1"
 author: "Alix Biton"
 date: "2026-01-14"
 output: html_document
