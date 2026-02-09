@@ -293,11 +293,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Pour utiliser la fonction <code>terra::shade()</code>, il faut un angle et une direction. L’angle utilisé sera l’angle d’inflexion de 6° (Boose et al.1994). Pour la direction, on veut récupérer la direction que prend le vent lorsque sa vitesse est maximale dans un layer c’est-à-dire la direction de la cellule ayant le Vmax.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="schema_topo.png" class="img-fluid figure-img"></p>
-<figcaption>Schéma explicatif de la fonction “computeExposure()”</figcaption>
+<p><img src="../images/schema_topo.png" class="img-fluid figure-img"></p>
+<figcaption>Schéma explicatif de la fonction</figcaption>
 </figure>
 </div>
 <p>Les valeurs négatives représente les aires protégées du vent tandis que les valeurs positives représente les aires exposées au vent.</p>
+</section>
+<section id="paramètres" class="level4">
+<h4 class="anchored" data-anchor-id="paramètres">Paramètres</h4>
+<p>Les paramètres de cette fonction sont :</p>
+<ul>
+<li><strong>sts</strong> : la StormList contenant les cyclones d’intérêt</li>
+<li><strong>dem</strong> : les données d’élévation (fichier .tif)</li>
+<li><strong>angle</strong> : angle d’inflection du vent (par défaut = 6°)</li>
+<li><strong>threshold</strong> : seuil minimum requis de vent (en m/s) pour calculer l’exposition (par défaut = 0 m/s)</li>
+<li><strong>product</strong> : produits calculés. peut être “Profiles”, “Max” ou “Mean”</li>
+<li><strong>verbose</strong> : si la fonction affiche les informations sur le processus ou non (0,1 ou 2)</li>
+</ul>
+</section>
+<section id="outputs" class="level4">
+<h4 class="anchored" data-anchor-id="outputs">Outputs</h4>
+<p>Les outputs de cette fonction dépendent du produit indiqué dans les inputs de la fonction.</p>
+<p>Les <strong>“Profiles”</strong> renvoient les profils d’exposition topographique au vent à chaque mesure (toutes les 60 min) comme on pourrait le voir dans la fonction spatialBehaviour(). La terminologie de ces outputs sont : <em>STORM_Exposure_n</em></p>
+<p>Le <strong>“Max”</strong> renvoie un raster avec l’exposition topographique maximale sur toute la loi. On a récupéré, pour chaque cellule, la valeur maximale d’exposition tout au long du cyclone. La terminologie de cet output est : <em>STORM_Exposure_Max</em></p>
+<p>Le <strong>“Mean”</strong> renvoie un raster avec l’exposition topographique moyenne sur toute la loi. On a récupéré, pour chaque cellule, la valeur maximale d’exposition tout au long du cyclone. La terminologie de cet output est : <em>STORM_Exposure_Mean</em></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../images/schema_outputs.png" class="img-fluid figure-img"></p>
+<figcaption>Outputs possibles de la fonction computeExposure()</figcaption>
+</figure>
+</div>
 </section>
 </section>
 <section id="exemple-chido" class="level3">
