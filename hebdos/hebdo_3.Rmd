@@ -45,12 +45,12 @@ Cet output ne résume pas bien l'exposition topographqiue au vent de l'entièret
 Il y aurait les produits suivants :
 
 -   **Max** qui ressort le profile d'Exposure ayant eu le maximum d'exposition (la cellule ou l'exposition était maximale)
--  **Mean** qui ressort le profile d'Exposure ayant eu le maximum d'exposition en moyenne (sur l'ensemble du raster ou l'exposition était la plus élevée)
+-   **Mean** qui ressort le profile d'Exposure ayant eu le maximum d'exposition en moyenne (sur l'ensemble du raster ou l'exposition était la plus élevée)
 
-Enfin, il faudrait une dernière fonction qui permette de visualiser les ourtput nommée par exemple `plotExposure()` qui reste très simple, dans la même idée que plotBehaviour(). 
+Enfin, il faudrait une dernière fonction qui permette de visualiser les ourtput nommée par exemple `plotExposure()` qui reste très simple, dans la même idée que plotBehaviour().
 
-### OpenEO 
+### OpenEO
 
-Pour récupérer les données de DEM et de végétation avec Sentinel L2A, il y a le package R `openEO` qui est facile d'utilisation et permet de choisir la zone d'intérêt sans avoir à se prendre la tête sur les tuiles. Il suffit d'avoir le polygone d'intérêt et que les données voulues soient disponibles dans les collections openEO. Il faut aussi un compte Copernicus. 
+Pour récupérer les données de DEM et de végétation avec Sentinel L2A, il y a le package R `openEO` qui est facile d'utilisation et permet de choisir la zone d'intérêt sans avoir à se prendre la tête sur les tuiles. Il suffit d'avoir le polygone d'intérêt et que les données voulues soient disponibles dans les collections openEO. Il faut aussi un compte Copernicus.
 
-La démarche et le code est expliqué dans le panel **Travaux en Cours** --> **Récupérer données**
+La démarche et le code est expliqué dans le panel **Travaux en Cours** --\> **Récupérer données**

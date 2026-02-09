@@ -2,7 +2,7 @@
 title: "Stage Alix"
 about: 
   template: marquee
-  image: logo_stormr.png
+  image: images/logo_stormr.png
   image-width: 8em
   links: 
     - icon: linkedin

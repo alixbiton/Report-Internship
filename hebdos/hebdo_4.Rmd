@@ -1,0 +1,46 @@
+---
+title: "Semaine 4"
+author: "Alix Biton"
+date: "2026-02-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 4 (02-06/02)
+
+### Objectifs
+
+-   Déterminer les produits et les mettre en place `computeExposure`
+-   Utilisation OpenEO
+-   Bibliographie
+-   Ecriture du rapport bibliographique
+
+### Produits
+
+En suivant la logique déjà présente dans le package, un des paramètres de la fonction `computeExposure` sont les produits, comme dans `spatialBehaviour()`. Les produits permettent d'avoir accès a plusieurs métriques de manière simple. Les produits ici seront :
+
+-   **"Profiles"** : Profil d'exposition topographique au vent à chaque mesure (toutes les 60 min).
+-   **"Max"**: Exposition topographique maximale sur toute la loi (valeur maximale à chaque cellule du raster)
+-   **"Mean"**: Exposition topographique moyenne sur toute la loi (valeur moyenne à chaque cellule du raster)
+
+Ces produits ont été ajoutés à la fonction. Ensuite, j'ai du prendre en compte le cas où il y a plusieurs cyclones répertoriés dans la StormList d'étude. Premier push fait.
+
+En ce qui concerne l'implémentation de la fonction, il manque les `checkInputs` et toute la partie test de la fonction avec l'utilisation du package `testthat`
+
+### Utilisation OpenEO
+
+La fonction disponible dans **"Récupérer données"** peut être calculée avec plusieurs métriques calculées dans un intervalle de temps pré-défini :
+
+-   **max** : valeur maximale de NDVI
+-   **min**: valeur minimale de NDVI
+-   **median**: valeur médiane de NDVI
+-   **mean**: valeur moyenne de NDVI
+
+En visualisant les résultats, on observe une variabilité intra très élevée ce qui montre que, malgré le filtrage par % de couverture nuageuse, les données restent peu fiables sur une période donnée (de plusieurs semaines). Pour mon étude de cas, il faudrait donc, soit utiliser une image choisie manuellement avec peu de couverture nuageuse, soit utiliser des autres données : **Sentinel-2 Quaterly Mosaics**. Ces données apportent un produit avec quasiment aucun nuages, crée en combinant les images de Sentinel-2 sans nuages. Il y a un produit tous les 3 mois à une résolution de 10m.
+
+### Bibliographie
+
+Recherche de bibliographie pour voir ce qu'il se fait dans les analyses statistiques se rapprochant de mon étude de cas pour visualiser ce que je pourrais faire plus tard, et le mettre dans mon rapport bibliographique. Ecriture de mon rapport bibliographique.

@@ -6,23 +6,32 @@ website:
   title: "reports"
   navbar:
     left:
-      - text: "Rapports Hebdomadaires"
-        menu: 
-          - href: hebdo_1.Rmd
-            text: "Semaine 1"
-          - href: hebdo_2.Rmd
-            text: "Semaine 2"
-          - href: hebdo_3.Rmd
-            text: "Semaine 3"
-      - href: computeTopo.Rmd
+      - href: work/computeTopo.Rmd
         text: "Exposition Topographique"
       - text: "Travaux en cours"
         menu: 
-          - href: openeo.Rmd
+          - href: work/openeo.Rmd
             text: "Récupérer données"
       - href: about.qmd
         text: "A propos"
-        
+  sidebar:
+    style: "docked"
+    search: true 
+    contents:
+      - section: "Rapports Hebdomadaires"
+        contents:
+          - section: "Janvier" 
+            contents:
+              - href: hebdos/hebdo_1.Rmd
+                text: "Semaine 1"
+              - href: hebdos/hebdo_2.Rmd
+                text: "Semaine 2"
+              - href: hebdos/hebdo_3.Rmd
+                text: "Semaine 3"
+          - section: "Février" 
+            contents:
+              - href: hebdos/hebdo_4.Rmd
+                text: "Semaine 4"
       
 format:
   html:
