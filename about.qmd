@@ -1,0 +1,13 @@
+---
+title: "A propos"
+about: 
+  template: jolla
+  image: logo_amap.jpg
+  links: 
+    - icon: github
+      text: GitHub
+      href: https://github.com/alixbiton/
+---
+
+Ce site est encore bien simple mais risque de s'améliorer au cours des semaines. 
+Mon but à la fin : avoir un site complet, agréable à visiter pour une visite guidée dans mon stage.

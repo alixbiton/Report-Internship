@@ -47,10 +47,9 @@ compute_result(graph = result, output_file = "/home/abiton/Documents/dem_data/de
 
 ## Données Sentinel
 
-Pour récupérer les données de végétation, on utilise le même principe mais avec une dimension temporelle en plus. Les données à utiliser pour calculer le NDVI sont les bandes 8 et 4 des données Sentinel L2A. 
-Dans mon cas, je cherche à avoir le NDVI avant le cyclone CHIDO et le NDVI après le cyclone donc je dois récupérer à deux temporalités différentes. 
+Pour récupérer les données de végétation, on utilise le même principe mais avec une dimension temporelle en plus. Les données à utiliser pour calculer le NDVI sont les bandes 8 et 4 des données Sentinel L2A. Dans mon cas, je cherche à avoir le NDVI avant le cyclone CHIDO et le NDVI après le cyclone donc je dois récupérer à deux temporalités différentes.
 
-```{r sentinel, eval = FALSE} 
+```{r sentinel, eval = FALSE}
 bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
 dossier_out = "/home/abiton/Documents/dem_data" 
 
@@ -96,8 +95,7 @@ get_ndvi_period("2024-10-22", "2024-12-10", "ndvi_avant_chido.tif")
 get_ndvi_period("2025-01-01", "2025-03-15", "ndvi_apres_chido.tif")
 ```
 
-Afin de gérer les nuages, il y a l'option `cloud_cover`, définit ici à 30%. Seules les données avec 30% ou moins de nuages sont gardées. 
-On obtient donc des données de végétation avant-après Chido. 
+Afin de gérer les nuages, il y a l'option `cloud_cover`, définit ici à 30%. Seules les données avec 30% ou moins de nuages sont gardées. On obtient donc des données de végétation avant-après Chido.
 
 ```{r plot-ndvi, warning=F,message = F,echo = F, fig.align='center'}
 library(terra)
@@ -113,12 +111,12 @@ plot(s_stack,
 
 ### Tests métriques
 
-Dans la fonction utilisée, j'ai utilisé la métrique mediane, mais il y a d'autres métriques tel que le max, le min, le median et le mean. 
+Dans la fonction utilisée, j'ai utilisé la métrique mediane, mais il y a d'autres métriques tel que le max, le min, le median et le mean.
 
 Voici les différences de visualisations du NDVI pour le même intervalle de temps pour chaque métrique. L'intervalle de temps ici est pour la période :
 
--  avant CHIDO : 2024-10-22 2024-12-10
--  après CHIDO : 2025-01-01, 2025-03-15
+-   avant CHIDO : 2024-10-22 2024-12-10
+-   après CHIDO : 2025-01-01, 2025-03-15
 
 ```{r plot metrics, warning = F, message = F, echo = F, fig.align = 'center'}
 ## with max metric ####
@@ -157,8 +155,8 @@ plot(s_stack_medmean,
      main = c("before median", "after median",
               "before mean", "after mean"))
 
-``` 
+```
 
-Au vu de ces résultats pour ces intervalles de temps, le moins pertinent serait de prendre la valeur minimale pour visualiser la végétation car c'est surement la valeur capté au travers d'un nuage et est non représentative ed la réelle végétation de Mayotte. Les valeurs les plus pertinentes seraient la valeur max pour estimer correctement la végétation réelle captée par Sentinel. C'est la visualisation avec le moins l'effet des nuages. Cependant, on voit les démarcations des tuiles ici. 
+Au vu de ces résultats pour ces intervalles de temps, le moins pertinent serait de prendre la valeur minimale pour visualiser la végétation car c'est surement la valeur capté au travers d'un nuage et est non représentative ed la réelle végétation de Mayotte. Les valeurs les plus pertinentes seraient la valeur max pour estimer correctement la végétation réelle captée par Sentinel. C'est la visualisation avec le moins l'effet des nuages. Cependant, on voit les démarcations des tuiles ici.
 
 Les valeurs médianes et moyennes sont pertinentes mais peuvent être impactées par la présence de nuages et ainsi retranscrire une mauvaise détection du réel indice NDVI en tout points.

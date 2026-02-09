@@ -1,0 +1,43 @@
+---
+title: "Stage Alix"
+about: 
+  template: marquee
+  image: logo_stormr.png
+  image-width: 8em
+  links: 
+    - icon: linkedin
+      text: LinkedIn
+      href: https://fr.linkedin.com/in/alix-biton-b28b59316
+    - icon: github
+      text: GitHub
+      href: https://github.com/alixbiton/ 
+---
+
+Bienvenue sur mon site ayant pour but de documenter mon stage.
+
+Ce projet Quarto s'inscrit dans mon stage de deuxième année de master visant à étudier les effets des cyclones sur la végétation des forêts tropicales avec l'étude de cas du cyclone Chido, passé sur l'île de Mayotte en décembre 2024.
+
+Ici, vous trouverez mes rapports hebdomadaires ainsi que les objectifs de mon stage, les avancées et hypothèses.
+
+## Sujet de stage
+
+Mon stage consiste à améliorer le package R StormR et d'appliquer ce package à l'étude de cas de l'effet du cyclone Chido sur les forpets de Mayotte. Deux ojectifs distincts se démarquent :
+
+-   Le premier objectif de ce stage est l'implémentation d'une nouvelle fonctionnalité dans le package StormR permettant de calculer l'exposition topographique au vent à partir de données de direction de vent générées par StormR et d'un modèle numérique de terrain, en s'inspirant d'Ibanez et al. (2024)
+-   Le second objectif portera sur l'application de StormR et du test de la nouvelle fonctionnalité pour l'étude de l'impact du cyclone Chido sur la végétation des forêts de Mayotte.
+
+**Lieu du stage:** CIRAD \| UMR AMAP - Montpellier
+
+## Mon parcours
+
+Université de Bourgogne, Dijon \| 2021-2024\
+Licence Sciences de la Vie - Biologie des Organismes
+
+Université de Toulouse, Toulouse \| 2024-2026\
+Master Biodiversité Ecologie Evolution - Modélisation des Systèmes Ecologiques
+
+## Encadrants
+
+Thomas Arsouze \| Ingénieur de Recherche CIRAD
+
+Thomas Ibanez \| Chercheur IRD

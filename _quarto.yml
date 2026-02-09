@@ -1,0 +1,36 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "reports"
+  navbar:
+    left:
+      - text: "Rapports Hebdomadaires"
+        menu: 
+          - href: hebdo_1.Rmd
+            text: "Semaine 1"
+          - href: hebdo_2.Rmd
+            text: "Semaine 2"
+          - href: hebdo_3.Rmd
+            text: "Semaine 3"
+      - href: computeTopo.Rmd
+        text: "Exposition Topographique"
+      - text: "Travaux en cours"
+        menu: 
+          - href: openeo.Rmd
+            text: "Récupérer données"
+      - href: about.qmd
+        text: "A propos"
+        
+      
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+editor: visual
+
