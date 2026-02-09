@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Alix Biton">
+<meta name="dcterms.date" content="2026-01-29">
 
-<title>A propos – reports</title>
+<title>OpenEO data – reports</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,26 +22,62 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-a12a007ad658e76cec034ccbdc624b8a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-a12a007ad658e76cec034ccbdc624b8a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -69,17 +107,17 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed fullcontent quarto-light">
+<body class="nav-sidebar docked nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">reports</span>
     </a>
   </div>
@@ -90,7 +128,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./work/computeTopo.html"> 
+    <a class="nav-link" href="../work/computeTopo.html"> 
 <span class="menu-text">Exposition Topographique</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -99,13 +137,13 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-travaux-en-cours">    
         <li>
-    <a class="dropdown-item" href="./work/openeo.html">
+    <a class="dropdown-item" href="../work/openeo.html">
  <span class="dropdown-text">Récupérer données</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" href="./about.html" aria-current="page"> 
+    <a class="nav-link" href="../about.html"> 
 <span class="menu-text">A propos</span></a>
   </li>  
 </ul>
@@ -119,7 +157,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">A propos</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">OpenEO data</li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -159,19 +197,19 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./hebdos/hebdo_1.html" class="sidebar-item-text sidebar-link">
+  <a href="../hebdos/hebdo_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Semaine 1</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./hebdos/hebdo_2.html" class="sidebar-item-text sidebar-link">
+  <a href="../hebdos/hebdo_2.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Semaine 2</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./hebdos/hebdo_3.html" class="sidebar-item-text sidebar-link">
+  <a href="../hebdos/hebdo_3.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Semaine 3</span></a>
   </div>
 </li>
@@ -188,7 +226,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./hebdos/hebdo_4.html" class="sidebar-item-text sidebar-link">
+  <a href="../hebdos/hebdo_4.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Semaine 4</span></a>
   </div>
 </li>
@@ -201,33 +239,185 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#openeo" id="toc-openeo" class="nav-link active" data-scroll-target="#openeo">OpenEO</a></li>
+  <li><a href="#données-dem30" id="toc-données-dem30" class="nav-link" data-scroll-target="#données-dem30">Données DEM30</a></li>
+  <li><a href="#données-sentinel" id="toc-données-sentinel" class="nav-link" data-scroll-target="#données-sentinel">Données Sentinel</a>
+  <ul class="collapse">
+  <li><a href="#tests-métriques" id="toc-tests-métriques" class="nav-link" data-scroll-target="#tests-métriques">Tests métriques</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<div class="quarto-about-jolla">
-  <img src="images/logo_amap.jpg" class="about-image
-  round " style="height: 15em; width: 15em;">
- <header id="title-block-header" class="quarto-title-block default">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">A propos</h1>
+<h1 class="title">OpenEO data</h1>
 </div>
+
+
+
 <div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Alix Biton </p>
+          </div>
   </div>
-</header><main class="content" id="quarto-document-content">
-<p>Ce site est encore bien simple mais risque de s’améliorer au cours des semaines. Mon but à la fin : avoir un site complet, agréable à visiter pour une visite guidée dans mon stage.</p>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 29, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
 
 
-</main> 
-  <hr class="about-sep">
-   <div class="about-links">
-  <a href="https://github.com/alixbiton/" class="about-link" rel="" target="">
-    <i class="bi bi-github"></i>
-     <span class="about-link-text">GitHub</span>
-  </a>
+</header>
+
+
+<section id="openeo" class="level2">
+<h2 class="anchored" data-anchor-id="openeo">OpenEO</h2>
+<p>OpenEO est un package R qui permet d’obtenir les données Earth Observation. Afin d’accéder à ces données, il est nécéssaire de se connecter. Ici il faut donc avoir un compte Copernicus. Le lien de documentation d’utilisation : <a href="https://documentation.dataspace.copernicus.eu/APIs/openEO/R_Client/R.html" class="uri">https://documentation.dataspace.copernicus.eu/APIs/openEO/R_Client/R.html</a></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openeo)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to the backend and authenticate</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>connection <span class="ot">=</span> <span class="fu">connect</span>(<span class="at">host =</span> <span class="st">"https://openeofed.dataspace.copernicus.eu"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">login</span>()</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># get the process collection to use the predefined processes of the back-end</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>p <span class="ot">=</span> <span class="fu">processes</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="données-dem30" class="level2">
+<h2 class="anchored" data-anchor-id="données-dem30">Données DEM30</h2>
+<p>Pour récupérer les données d’élévation Copernicus DEM30, il faut délimiter notre loi. Afin de récupérer le bounding box de Mayotte, j’ai récupérer les coordonnées ici : <a href="http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000" class="uri">http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000</a></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> p<span class="sc">$</span><span class="fu">load_collection</span>(<span class="at">id =</span> <span class="st">'COPERNICUS_30'</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">spatial_extent =</span> <span class="fu">list</span>(<span class="at">west=</span><span class="fl">44.98</span>, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">south=</span><span class="sc">-</span><span class="fl">13.01</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">east=</span><span class="fl">45.30</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">north=</span><span class="sc">-</span><span class="fl">12.61</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">bands =</span> <span class="fu">c</span>(<span class="st">"DEM"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Ensuite, on peut sauver nos données dans le format souhaité et l’enregistrer en local.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> p<span class="sc">$</span><span class="fu">save_result</span>(<span class="at">data =</span> data, <span class="at">format =</span> <span class="st">"GTiff"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># save the tif file</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">compute_result</span>(<span class="at">graph =</span> result, <span class="at">output_file =</span> <span class="st">"/home/abiton/Documents/dem_data/dem_mayotte.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="données-sentinel" class="level2">
+<h2 class="anchored" data-anchor-id="données-sentinel">Données Sentinel</h2>
+<p>Pour récupérer les données de végétation, on utilise le même principe mais avec une dimension temporelle en plus. Les données à utiliser pour calculer le NDVI sont les bandes 8 et 4 des données Sentinel L2A. Dans mon cas, je cherche à avoir le NDVI avant le cyclone CHIDO et le NDVI après le cyclone donc je dois récupérer à deux temporalités différentes.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>bbox <span class="ot">=</span> <span class="fu">list</span>(<span class="at">west=</span><span class="fl">44.98</span>, <span class="at">south=</span><span class="sc">-</span><span class="fl">13.01</span>, <span class="at">east=</span><span class="fl">45.30</span>, <span class="at">north=</span><span class="sc">-</span><span class="fl">12.61</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>dossier_out <span class="ot">=</span> <span class="st">"/home/abiton/Documents/dem_data"</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># function to compute ndvi</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>get_ndvi_period <span class="ot">=</span> <span class="cf">function</span>(start_date, end_date, filename) {</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># charge data</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">=</span> p<span class="sc">$</span><span class="fu">load_collection</span>(</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">id =</span> <span class="st">"SENTINEL2_L2A"</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">spatial_extent =</span> bbox,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">temporal_extent =</span> <span class="fu">list</span>(start_date, end_date),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">bands =</span> <span class="fu">c</span>(<span class="st">"B08"</span>,<span class="st">"B04"</span>),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">properties =</span> <span class="fu">list</span>(<span class="st">"eo:cloud_cover"</span> <span class="ot">=</span> <span class="cf">function</span>(x) x <span class="sc">&lt;=</span> <span class="dv">30</span>) </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># gerer les nuages avec cloud_cover, garde que moins de 30% nuages</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute ndvi</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ndvi_cube = p$ndvi(data = data, nir = "B08", red = "B04")</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">#manually compute ndvi</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  spectral_reduce <span class="ot">=</span> p<span class="sc">$</span><span class="fu">reduce_dimension</span>(<span class="at">data =</span> data, <span class="at">dimension =</span> <span class="st">"bands"</span>,<span class="at">reducer =</span> <span class="cf">function</span>(data,context) {</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    b8 <span class="ot">=</span> data[<span class="dv">1</span>] <span class="co">#nir</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    b4 <span class="ot">=</span> data[<span class="dv">2</span>] <span class="co">#red</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>((b8<span class="sc">-</span>b4)<span class="sc">/</span>(b8<span class="sc">+</span>b4))</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  temporal_reduce <span class="ot">=</span> p<span class="sc">$</span><span class="fu">reduce_dimension</span>(<span class="at">data=</span>spectral_reduce,<span class="at">dimension =</span> <span class="st">"t"</span>, <span class="at">reducer =</span> <span class="cf">function</span>(x,y){</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    p<span class="sc">$</span><span class="fu">median</span>(x)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="co"># save data</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">=</span> p<span class="sc">$</span><span class="fu">save_result</span>(<span class="at">data =</span> temporal_reduce, <span class="at">format =</span> <span class="st">"GTiff"</span>)</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">compute_result</span>(<span class="at">graph =</span> result, <span class="at">output_file =</span> <span class="fu">file.path</span>(dossier_out, filename))</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="co"># for chido, need to find dates without to much clouds</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="co"># before chido</span></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2024-10-22"</span>, <span class="st">"2024-12-10"</span>, <span class="st">"ndvi_avant_chido.tif"</span>)</span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="co"># after chido</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a><span class="fu">get_ndvi_period</span>(<span class="st">"2025-01-01"</span>, <span class="st">"2025-03-15"</span>, <span class="st">"ndvi_apres_chido.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Afin de gérer les nuages, il y a l’option <code>cloud_cover</code>, définit ici à 30%. Seules les données avec 30% ou moins de nuages sont gardées. On obtient donc des données de végétation avant-après Chido.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="openeo_files/figure-html/plot-ndvi-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
 </div>
 </div>
- <!-- /main -->
+</div>
+<section id="tests-métriques" class="level3">
+<h3 class="anchored" data-anchor-id="tests-métriques">Tests métriques</h3>
+<p>Dans la fonction utilisée, j’ai utilisé la métrique mediane, mais il y a d’autres métriques tel que le max, le min, le median et le mean.</p>
+<p>Voici les différences de visualisations du NDVI pour le même intervalle de temps pour chaque métrique. L’intervalle de temps ici est pour la période :</p>
+<ul>
+<li>avant CHIDO : 2024-10-22 2024-12-10</li>
+<li>après CHIDO : 2025-01-01, 2025-03-15</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="openeo_files/figure-html/plot metrics-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="openeo_files/figure-html/plot metrics-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Au vu de ces résultats pour ces intervalles de temps, le moins pertinent serait de prendre la valeur minimale pour visualiser la végétation car c’est surement la valeur capté au travers d’un nuage et est non représentative ed la réelle végétation de Mayotte. Les valeurs les plus pertinentes seraient la valeur max pour estimer correctement la végétation réelle captée par Sentinel. C’est la visualisation avec le moins l’effet des nuages. Cependant, on voit les démarcations des tuiles ici.</p>
+<p>Les valeurs médianes et moyennes sont pertinentes mais peuvent être impactées par la présence de nuages et ainsi retranscrire une mauvaise détection du réel indice NDVI en tout points.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     
