@@ -32,6 +32,8 @@ website:
             contents:
               - href: hebdos/hebdo_4.Rmd
                 text: "Semaine 4"
+              - href: hebdos/hebdo_5.Rmd
+                text: "Semaine 5"
       
 format:
   html:
