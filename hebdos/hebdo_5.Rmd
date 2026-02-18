@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Semaine 4 (09-13/02)
+## Semaine 5 (09-13/02)
 
 ### Objectifs
 
@@ -18,4 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 -   Voir pour gérer le login() et obtention données DEM dans la fonction
 -   Bibliographie
 -   Ecriture du rapport bibliographique
+
+### Inputs et fonctions
+
+La fonction `checkInputsComputeExposure( )` a été ajoutée et j'ai commencé les tests de la fonction avec l'ajout du fichier `test-computeExposure` pour vérifier que tout va bien. 
+Pour le fichier test, j'ai utilisé le dem de l'île de Vanuatu (petite île) et le cyclone PAM pour pas que ce ne soit trop lourd. 
 

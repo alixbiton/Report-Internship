@@ -12,6 +12,8 @@ website:
         menu: 
           - href: work/openeo.Rmd
             text: "Récupérer données"
+      - href: work/summary1902.Rmd
+        text: "Réunion 19/02"
       - href: about.qmd
         text: "A propos"
   sidebar:
