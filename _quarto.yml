@@ -10,10 +10,14 @@ website:
         text: "Exposition Topographique"
       - text: "Travaux en cours"
         menu: 
+          - href: work/brutimages.Rmd
+            text: "Images brutes"
+      
+      - text: "Données"
+        menu: 
           - href: work/openeo.Rmd
-            text: "Récupérer données"
-      - href: work/summary1902.Rmd
-        text: "Réunion 19/02"
+            text: "Package OpenEO"
+      
       - href: about.qmd
         text: "A propos"
   sidebar:
@@ -36,6 +40,8 @@ website:
                 text: "Semaine 4"
               - href: hebdos/hebdo_5.Rmd
                 text: "Semaine 5"
+              - href: work/summary1902.Rmd
+                text: "Réunion 19/02"
       
 format:
   html:
