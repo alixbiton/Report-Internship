@@ -1,0 +1,121 @@
+---
+title: "Images brutes"
+author: "Alix Biton"
+date: "2026-02-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Ce document recense des images brutes de NDVI pour se rendre compte de l'emprise disponible sur l'île de Mayotte et de la meilleure manière de traiter les nuages ainsi que les images. Par la suite, ce fichier ira dans la partie Données du site.
+
+Pour traiter les nuages par le package OpenEO, il existel'option `cloud_cover` qui trie les images ayant moins d'un certain pourcentage de couverture nuageuse (ici 30%). Il existe aussi la bande SCL (<https://brazil-data-cube.github.io/specifications/bands/SCL.html>) qui classe tous les pixels en plusieurs catégories :
+
+| Classe                   | Valeur de pixel |
+|--------------------------|-----------------|
+| No Data                  | 0               |
+| Satured or Defective     | 1               |
+| Dark Area Pixels         | 2               |
+| Cloud Shadows            | 3               |
+| Vegetation               | 4               |
+| Not Vegetated            | 5               |
+| Water                    | 6               |
+| Unclassified             | 7               |
+| Cloud Medium Probability | 8               |
+| Cloud High Probability   | 9               |
+| Thin Cirrus              | 10              |
+| Snow                     | 11              |
+
+Pour l'utilisation de la SCL, j'ai gardé seulement les pixels 4,5,6,7.
+J'ai testé plusieurs traitement d'images très basiques pour voir comment ceux-ci fonctionnaient et je l'ai appliqué à deux moments : avant chido et après chido. 
+
+## Avant Chido
+
+Pour les images avant Chido, j'ai pris les images comprises entre Octobre et Mi-décembre 2024. 
+Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
+
+```{r before, echo=FALSE}
+library(slickR)
+
+dossier_source <- "/home/abiton/Documents/sentinel/L2A/before/"
+mes_photos <- list.files(dossier_source, pattern = "NDVI_before_.*\\.png", full.names = TRUE)
+
+library(slickR)
+
+# En supposant que vous utilisez la liste des photos encodées ou copiées (cf étape précédente)
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+  settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Avant Chido CC
+
+Ici on a un traitement avec le SCL et avec l'option `cloud_cover` réglé à 30% c'est -à-dire qu'il élimine toutes les images(tuiles) avec plus de 30% de couverture nuageuse.
+
+```{r beforeCC, echo=FALSE}
+library(slickR)
+
+dossier_source <- "/home/abiton/Documents/sentinel/L2A/beforeCC/"
+mes_photos <- list.files(dossier_source, pattern = "NDVI_beforeCC_.*\\.png", full.names = TRUE)
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Après Chido
+
+Pour les images après Chido, j'ai pris les images comprises entre Janvier et Mars 2025. 
+Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
+
+```{r after, echo=FALSE}
+library(slickR)
+
+dossier_source <- "/home/abiton/Documents/sentinel/L2A/after/"
+mes_photos <- list.files(dossier_source, pattern = "NDVI_after_.*\\.png", full.names = TRUE)
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Après Chido CC
+
+Ici on a un traitement avec le SCL et avec l'option `cloud_cover` réglé à 30% c'est -à-dire qu'il élimine toutes les images(tuiles) avec plus de 30% de couverture nuageuse.
+
+```{r afterCC, echo=FALSE}
+library(slickR)
+
+dossier_source <- "/home/abiton/Documents/sentinel/L2A/afterCC/"
+mes_photos <- list.files(dossier_source, pattern = "NDVI_afterCC_.*\\.png", full.names = TRUE)
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
