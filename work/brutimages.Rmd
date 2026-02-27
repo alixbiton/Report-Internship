@@ -119,3 +119,23 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
   )
 
 ```
+
+
+## Quarterly Mosaics
+
+```{r mosaics, echo=FALSE}
+library(slickR)
+
+dossier_source <- "/home/abiton/Documents/sentinel/QuarterlyMosaics/"
+mes_photos <- list.files(dossier_source, pattern = "ndvi202.*\\.png", full.names = TRUE)
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
