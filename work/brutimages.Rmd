@@ -123,11 +123,34 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ## Quarterly Mosaics
 
+Les données Quarterly Mosaics de la mission Sentinel 2 permettent une vue d'ensemble de la zone sans nuages et claire. Elle récupère, sur une période d'un trimestre, les meilleurs pixels pour obtenir la meilleure représentation de la végétation sur 3 mois. Voici les produits pour Mayotte. Il y a le produit du 4e trimestre de 2024 (Octobre-Decembre 2024) et le premier de 2025 (Janvier-Mars 2025). Par chance, Chido tombe pile poil fin décembre et ne chevauche pas sur les deux trimestres. Cependant une période de trois mois peut ne pas être très représentative de la végétation avant et après le cyclone. La végétatation, surtout après, a pu évoluer rapidement. 
+
 ```{r mosaics, echo=FALSE}
 library(slickR)
 
 dossier_source <- "/home/abiton/Documents/sentinel/QuarterlyMosaics/"
 mes_photos <- list.files(dossier_source, pattern = "ndvi202.*\\.png", full.names = TRUE)
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Reconstruction
+
+Afin d'essayer de recréer un produit similaire à ceux de Quarterly Mosaics, j'ai récupéré les données brutes avant et après Chido sur une période plus courte et j'ai fais la reconstruction moi-même dans la même logique que la mosaïque temporelle. 
+Ci-dessous sont représenté la reconstruction du NDVI pour la période avant le cyclone Chido (15 Novembre au 15 Décembre) et la période après le cyclone (Janvier 2025). L'emprise totale de Mayotte n'est pas disponible à chaque fois. Les zones blanches signifient que la zone a été couverte de nuages sur toute la période considérée. 
+
+```{r mosaicsperso, echo=FALSE}
+library(slickR)
+
+mes_photos <- c("/home/abiton/Documents/sentinel/L2A/before/decemberNdvi.png","/home/abiton/Documents/sentinel/L2A/after/januaryNdvi.png")
 
 slickR(obj = mes_photos, height = 400, width = "100%") + 
     settings(

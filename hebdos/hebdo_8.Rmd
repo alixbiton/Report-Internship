@@ -1,0 +1,77 @@
+---
+title: 'Rapport hebdomadaire 8'
+author: "Alix Biton"
+date: "2026-03-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 8 (02-06/03)
+
+### Objectifs
+
+-   Ajouter un produit profiles par pixel 
+-   Ajouter un produit intégré retraçant l'exposition topographique par pixel
+-   Reconstruction du NDVI de Mayotte
+-   Préparer un fichier résumant Melissa (Jamaique)
+
+## Profiles par pixel 
+
+### Produit PixProfiles
+
+Le but de ce produit, est que, pour chaque pixel, on récupère la direction associée et on calcule l'exposition topographique du vent. Il renvoie donc un SpatRaster dérivé des Profiles où il y a autant de layers que d'observations. Il y a donc une direction par pixel. 
+
+Cependant `shade()` prend une seule direction en entrée donc j'ai recalculé moi-même ce que fait la fonction en se basant sur leur calcul basé qur la formule de Lambert, appliqué à la topographie. Il faut donc que le raster du MNT soit de la même taille que le raster de direction, correspondant à la loi. On fait donc un `resample` pour gérer la différence de résolution entre les deux arguments. 
+
+### Produit intégré
+L'extension de ce produit est le produit intégré, où, pour chaque point, on récupère le vent le plus fort et la direction associée à cette vitesse pour en calculer l'exposition topographique au vent. On obtient un raster avec un résumé assez fiable du cyclone. 
+
+Lorsque le seuil est atteint, l'exposition topographique n'est pas calculée. 
+
+```{r summarys, echo=FALSE}
+library(slickR)
+
+mes_photos <- c("../images/summary0.png","../images/summary50.png")
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Reconstruction du NDVI
+
+Afin d'essayer de recréer un produit similaire à ceux de Quarterly Mosaics, j'ai récupéré les données brutes avant et après Chido sur une période plus courte et j'ai fais la reconstruction moi-même dans la même logique que la mosaïque temporelle. 
+Ci-dessous sont représenté la reconstruction du NDVI pour la période avant le cyclone Chido (15 Novembre au 15 Décembre) et la période après le cyclone (Janvier 2025). L'emprise totale de Mayotte n'est pas disponible à chaque fois. Les zones blanches signifient que la zone a été couverte de nuages sur toute la période considérée. 
+
+```{r mosaicsperso, echo=FALSE}
+library(slickR)
+
+mes_photos <- c("/home/abiton/Documents/sentinel/L2A/before/decemberNdvi.png","/home/abiton/Documents/sentinel/L2A/after/januaryNdvi.png")
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+## Melissa - Jamaique
+
+En vue de la collaboration possible avec Kurt McLaren, je vais faire tourner `StormR` sur l'ouragan Melissa qui est passé sur l'ouest de la Jamaique en octobre 2025. Cet ouragan est classé catégorie 5 sur l'échelle de Saffir-Simpson. Les vents ont atteints 295 km/h en moyenne, ce qui est 100km/h de plus que Chido par comparaison. (<https://meteofrance.com/actualites-et-dossiers/actualites/louragan-melissa-frappe-la-jamaique-avant-de-toucher-cuba>)
+
+Je vais donc faire tourner les fonctions principales de `StormR` sur ce cyclone pour avoir un petit résumé des différentes caractéristiques de ce cyclone. De plus je vais faire tourner l'exposition topographique au vent sur la Jamaique (partie ouest) afin de pouvoir montrer ce fichier à Kurt McLaren si possible. 
+
+Ce fichier sera disponible dans **Travaux en cours** sous le nom **Melissa**. 
