@@ -12,6 +12,8 @@ website:
         menu: 
           - href: work/brutimages.Rmd
             text: "Images brutes"
+          - href: work/melissa.Rmd
+            text: "Melissa"
       
       - text: "Données"
         menu: 
