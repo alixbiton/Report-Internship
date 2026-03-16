@@ -48,6 +48,8 @@ website:
             contents: 
              - href: hebdos/hebdo_8.Rmd
                text: "Semaine 8"
+             - href: hebdos/hebdo_9.Rmd
+               text: "Semaine 9&10"
       
 format:
   html:
