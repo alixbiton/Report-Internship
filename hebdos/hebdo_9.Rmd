@@ -54,3 +54,6 @@ Un point commun entre toutes ces zones est que l'on voit bien que la végétatio
 
 ### Issue de Direction
 
+Dans le package `StormR` la direction est "à l'envers" car elle indique la direction **towards** et ne suit pas les conventions météorologiques. Il faut donc changer les fonctions qui calculent la direction afin de résoudre ce problème et ensuite de modifier la documentation correspodante pour n'avoir aucune confusion à l'avenir. 
+
+Une fois réglé, la direction du vent indique la provenance du vent (**from**) avec le Nord à 0° et qui se lit dans le sens des aiguilles d'une montre. 

@@ -28,13 +28,61 @@ Pour traiter les nuages par le package OpenEO, il existel'option `cloud_cover` q
 | Thin Cirrus              | 10              |
 | Snow                     | 11              |
 
-Pour l'utilisation de la SCL, j'ai gardé seulement les pixels 4,5,6,7.
-J'ai testé plusieurs traitement d'images très basiques pour voir comment ceux-ci fonctionnaient et je l'ai appliqué à deux moments : avant chido et après chido. 
+Pour l'utilisation de la SCL, j'ai gardé seulement les pixels 4,5,6,7. J'ai testé plusieurs traitement d'images très basiques pour voir comment ceux-ci fonctionnaient et je l'ai appliqué à deux moments : avant chido et après chido.
 
-## Avant Chido
+## Fonction
 
-Pour les images avant Chido, j'ai pris les images comprises entre Octobre et Mi-décembre 2024. 
-Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
+Voici la fonction pour récupérer les données de NDVI. 
+
+```{r function,warning = FALSE, results = FALSE, message=FALSE}
+bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
+dossier_out = "/home/abiton/Documents/sentinel" 
+
+
+get_ndvi_masked = function(start_date, end_date, filename) {
+  
+  data = p$load_collection(
+    id = "SENTINEL2_L2A",
+    spatial_extent = bbox,
+    temporal_extent = list(start_date, end_date),
+    bands = c("B04", "B08", "SCL")
+    #properties = list("eo:cloud_cover" = function(x) x <= 30) #to use or no depending on the treatment
+  )
+  
+  # create mask
+   cloud_mask = p$reduce_dimension(
+     data = data,
+     dimension = "bands",
+     reducer = function(data, context) {
+       scl = data[3] 
+  
+       # only safe classes 
+       is_safe = p$or(
+         p$eq(scl, 4), # vegetated
+         p$or(
+           p$eq(scl, 5), # naked soil
+           p$or(p$eq(scl, 6), p$eq(scl, 7))# water or unclassified
+         )
+       )
+
+       return(p$not(is_safe))
+     }
+   )
+     # computing ndvi
+  data_only = p$filter_bands(data, bands = c("B04", "B08"))
+  data_cleaned = p$mask(data = data_only, mask = cloud_mask)
+  
+  ndvi_cube = p$ndvi(data = data_cleaned, nir = "B08", red = "B04")
+  
+  # save data
+  result = p$save_result(data = ndvi_cube, format = "NetCDF")
+  compute_result(graph = result, output_file = file.path(dossier_out, filename))
+}
+
+```
+### Avant Chido
+
+Pour les images avant Chido, j'ai pris les images comprises entre Octobre et Mi-décembre 2024. Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
 
 ```{r before, echo=FALSE}
 library(slickR)
@@ -56,7 +104,7 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ```
 
-## Avant Chido CC
+### Avant Chido CC
 
 Ici on a un traitement avec le SCL et avec l'option `cloud_cover` réglé à 30% c'est -à-dire qu'il élimine toutes les images(tuiles) avec plus de 30% de couverture nuageuse.
 
@@ -77,10 +125,9 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ```
 
-## Après Chido
+### Après Chido
 
-Pour les images après Chido, j'ai pris les images comprises entre Janvier et Mars 2025. 
-Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
+Pour les images après Chido, j'ai pris les images comprises entre Janvier et Mars 2025. Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
 
 ```{r after, echo=FALSE}
 library(slickR)
@@ -99,7 +146,7 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ```
 
-## Après Chido CC
+### Après Chido CC
 
 Ici on a un traitement avec le SCL et avec l'option `cloud_cover` réglé à 30% c'est -à-dire qu'il élimine toutes les images(tuiles) avec plus de 30% de couverture nuageuse.
 
@@ -120,10 +167,9 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ```
 
+### Quarterly Mosaics
 
-## Quarterly Mosaics
-
-Les données Quarterly Mosaics de la mission Sentinel 2 permettent une vue d'ensemble de la zone sans nuages et claire. Elle récupère, sur une période d'un trimestre, les meilleurs pixels pour obtenir la meilleure représentation de la végétation sur 3 mois. Voici les produits pour Mayotte. Il y a le produit du 4e trimestre de 2024 (Octobre-Decembre 2024) et le premier de 2025 (Janvier-Mars 2025). Par chance, Chido tombe pile poil fin décembre et ne chevauche pas sur les deux trimestres. Cependant une période de trois mois peut ne pas être très représentative de la végétation avant et après le cyclone. La végétatation, surtout après, a pu évoluer rapidement. 
+Les données Quarterly Mosaics de la mission Sentinel 2 permettent une vue d'ensemble de la zone sans nuages et claire. Elle récupère, sur une période d'un trimestre, les meilleurs pixels pour obtenir la meilleure représentation de la végétation sur 3 mois. Voici les produits pour Mayotte. Il y a le produit du 4e trimestre de 2024 (Octobre-Decembre 2024) et le premier de 2025 (Janvier-Mars 2025). Par chance, Chido tombe pile poil fin décembre et ne chevauche pas sur les deux trimestres. Cependant une période de trois mois peut ne pas être très représentative de la végétation avant et après le cyclone. La végétatation, surtout après, a pu évoluer rapidement.
 
 ```{r mosaics, echo=FALSE}
 library(slickR)
@@ -144,8 +190,7 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
 
 ## Reconstruction
 
-Afin d'essayer de recréer un produit similaire à ceux de Quarterly Mosaics, j'ai récupéré les données brutes avant et après Chido sur une période plus courte et j'ai fais la reconstruction moi-même dans la même logique que la mosaïque temporelle. 
-Ci-dessous sont représenté la reconstruction du NDVI pour la période avant le cyclone Chido (15 Novembre au 15 Décembre) et la période après le cyclone (Janvier 2025). L'emprise totale de Mayotte n'est pas disponible à chaque fois. Les zones blanches signifient que la zone a été couverte de nuages sur toute la période considérée. 
+Afin d'essayer de recréer un produit similaire à ceux de Quarterly Mosaics, j'ai récupéré les données brutes avant et après Chido sur une période plus courte et j'ai fais la reconstruction moi-même dans la même logique que la mosaïque temporelle. Ci-dessous sont représenté la reconstruction du NDVI pour la période avant le cyclone Chido (15 Novembre au 15 Décembre) et la période après le cyclone (Janvier 2025). L'emprise totale de Mayotte n'est pas disponible à chaque fois. Les zones blanches signifient que la zone a été couverte de nuages sur toute la période considérée.
 
 ```{r mosaicsperso, echo=FALSE}
 library(slickR)
