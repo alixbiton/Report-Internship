@@ -10,15 +10,16 @@ website:
         text: "Exposition Topographique"
       - text: "Travaux en cours"
         menu: 
-          - href: work/brutimages.Rmd
-            text: "Images brutes"
           - href: work/melissa.Rmd
             text: "Melissa"
+          - href: work/mbouzi.Rmd
       
       - text: "Données"
         menu: 
           - href: work/openeo.Rmd
             text: "Package OpenEO"
+          - href: work/brutimages.Rmd
+            text: "Images brutes"
       
       - href: about.qmd
         text: "A propos"

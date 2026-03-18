@@ -23,10 +23,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Différences de NDVI
 
-Les cartes de différences de NDVI sont disponible dans le fichier **images brutes**. Il y a les cartes de différences entre données provenant de la même période et entre données de périodes différentes. 
+Les cartes de différences de NDVI sont disponible dans le fichier **images brutes**. Il y a les cartes de différences entre données provenant de la même période et entre données de périodes différentes.
 
--   **Différences même période** : il faut que la différence soit la plus faible possible. Si de trop grosses différences sont détectées, cela signifie que la reconstruction contient trop de variabilité et ne représente pas bien la végétation de décembre ou janvier. 
--   **Différences entre périodes** : il faut que la différence soit significative pour montrer, avant même d'étudier l'impact de Chido, qu'il y a eu un changement de végétation entre décembre 2024 et janvier 2025. 
+-   **Différences même période** : il faut que la différence soit la plus faible possible. Si de trop grosses différences sont détectées, cela signifie que la reconstruction contient trop de variabilité et ne représente pas bien la végétation de décembre ou janvier.
+
+  ![Différences entre layers de décembre](../images/differencesbefore.png) 
+  ![Différences entre layers de janvier](../images/differencesafter.png)
+
+-   **Différences entre périodes** : il faut que la différence soit significative pour montrer, avant même d'étudier l'impact de Chido, qu'il y a eu un changement de végétation entre décembre 2024 et janvier 2025.
+  
+  ![Différences entre décembre et janvier](../images/differencetoto.png)
 
 ### Zones d'études
 
@@ -54,6 +60,6 @@ Un point commun entre toutes ces zones est que l'on voit bien que la végétatio
 
 ### Issue de Direction
 
-Dans le package `StormR` la direction est "à l'envers" car elle indique la direction **towards** et ne suit pas les conventions météorologiques. Il faut donc changer les fonctions qui calculent la direction afin de résoudre ce problème et ensuite de modifier la documentation correspodante pour n'avoir aucune confusion à l'avenir. 
+Dans le package `StormR` la direction est "à l'envers" car elle indique la direction **towards** et ne suit pas les conventions météorologiques. Il faut donc changer les fonctions qui calculent la direction afin de résoudre ce problème et ensuite de modifier la documentation correspodante pour n'avoir aucune confusion à l'avenir.
 
-Une fois réglé, la direction du vent indique la provenance du vent (**from**) avec le Nord à 0° et qui se lit dans le sens des aiguilles d'une montre. 
+Une fois réglé, la direction du vent indique la provenance du vent (**from**) avec le Nord à 0° et qui se lit dans le sens des aiguilles d'une montre.

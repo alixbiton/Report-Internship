@@ -32,7 +32,7 @@ Pour l'utilisation de la SCL, j'ai gardé seulement les pixels 4,5,6,7. J'ai tes
 
 ## Fonction
 
-Voici la fonction pour récupérer les données de NDVI. 
+Voici la fonction pour récupérer les données de NDVI.
 
 ```{r function,warning = FALSE, results = FALSE, message=FALSE}
 bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
@@ -80,6 +80,7 @@ get_ndvi_masked = function(start_date, end_date, filename) {
 }
 
 ```
+
 ### Avant Chido
 
 Pour les images avant Chido, j'ai pris les images comprises entre Octobre et Mi-décembre 2024. Ici on a un traitement sans l'option `cloud_cover` et avec le SCL.
@@ -206,4 +207,23 @@ slickR(obj = mes_photos, height = 400, width = "100%") +
     slidesToScroll = 1   
   )
 
+```
+
+## Différences
+
+```{r differences, echo = FALSE}
+library(slickR)
+
+mes_photos <- c("/home/abiton/Documents/Report-Internship/images/differencesbefore.png","/home/abiton/Documents/Report-Internship/images/differencesafter.png","/home/abiton/Documents/Report-Internship/images/differencetoto.png")
+mes_legendes <- c("Différences entre layers de décembre", "Différences entre layers de janvier", "Différences entre décembre et janvier")
+
+slickR(obj = mes_photos, height = 400, width = "100%") %synch% (
+  slickR(obj = mes_legendes, slideType = 'p') + 
+    settings(arrows = FALSE, dots = FALSE)
+) + 
+settings(
+  dots = TRUE, 
+  autoplay = TRUE, 
+  autoplaySpeed = 3000
+)
 ```

@@ -1,0 +1,103 @@
+---
+title: "Mbouzi"
+author: "Alix Biton"
+date: "2026-03-18"
+output: html_document
+---
+
+## Chissouia Mbouzi
+### Présentation
+
+L'îlot Chissouia Mbouzi est une réserve naturelle de 82 hectares de terres avec un sommet a 153m d'altitude donc un relief visible. Il y a 11 hectares de forêt sèche primaire.
+
+```{r mbouzipres, echo = FALSE}
+library(slickR)
+
+mes_photos <- c("/home/abiton/Documents/Report-Internship/images/mbouzidec.png","/home/abiton/Documents/Report-Internship/images/mbouzijan.png","/home/abiton/Documents/Report-Internship/images/diffMbouzi.png", "/home/abiton/Documents/Report-Internship/images/mbouziexp.png")
+mes_legendes <- c("NDVI 12/24 Mbouzi", "NDVI 01/25 Mbouzi", "Différence de NDVI sur la zone de Mbouzi","Exposition topographique au vent de Mbouzi")
+
+slickR(obj = mes_photos, height = 500, width = "100%") %synch% (
+  slickR(obj = mes_legendes, slideType = 'p') + 
+    settings(arrows = FALSE, dots = FALSE)
+) + 
+settings(
+  dots = TRUE, 
+  autoplay = TRUE, 
+  autoplaySpeed = 3000
+)
+```
+
+Comme on peut le voir visuellement sur ces premières cartes, les dégâts observés apparus entre décembre 2024 et janvier 2025 sont très visibles sur les zones exposées au vent. 
+Ici l'image "Exposition topographique au vent de Mbouzi" recense l'exposition topographique de l'ilôt lorsque la vitesse était maximale en chaque point. On peut dire qu'en chaque point, on a le moment le plus vulnérable. 
+
+### Premiers tests
+
+```{r data, echo = FALSE}
+library(terra)
+decraw  <- rast("/home/abiton/Documents/sentinel/L2A/before/decNDVI.tif")
+janraw  <- rast("/home/abiton/Documents/sentinel/L2A/after/janNDVI.tif")
+dem  <- rast("/home/abiton/Documents/dem_data/dem_mayotte.tif")
+
+emprise    <- ext(45.228889, 45.241055, -12.818204, -12.803578) #mbouzi
+poly_utm   <- project(as.polygons(emprise, crs="EPSG:4326"), crs(decraw))
+
+dec_zoom <- crop(decraw, poly_utm)
+jan_zoom <- crop(janraw, poly_utm)
+dem_utm <- project(crop(dem, emprise), dec_zoom)
+
+mask_terre <- dem_utm
+mask_terre[mask_terre <= 0] <- NA
+mask_terre[mask_terre > 0]  <- 1
+
+dec  <- dec_zoom * mask_terre
+jan  <- jan_zoom * mask_terre
+
+diff_ndvi  <- jan - dec
+
+
+common_mask <- !is.na(dec) & !is.na(jan) 
+v_dec <- values(mask(dec, common_mask, maskvalue=0), na.rm=TRUE)
+v_jan <- values(mask(jan, common_mask, maskvalue=0), na.rm=TRUE)
+v_diff <- values(mask(diff_ndvi, common_mask, maskvalue=0), na.rm = TRUE)
+
+dtaMbouzi <- read.csv("/home/abiton/Documents/scriptR tests/dataMbouzi.csv")
+```
+
+Avant de commencer les statistiques, il faut faire des statistiques basiques afin de vérifier quantitativement si les différences sont significatives. 
+
+**Pour rappel:** les valeurs négatives correspondent à une perte de végétation et les valeurs positives correspondent une végétalisation de la zone (possibilité de trouées attention)
+
+```{r tests, warning = FALSE}
+
+# few key stats
+statSummary <- data.frame(
+  meanDec = mean(v_dec),
+  meanJan = mean(v_jan),
+  meanChange = mean(v_diff),
+  sdChange = sd(v_diff),
+  lossPercentage = (sum(v_diff < 0) / length(v_diff)) * 100
+)
+
+print(statSummary)
+
+t.test(v_dec, v_jan, paired = TRUE)
+
+hist(v_diff, breaks=50, col="lightblue2", main="Distribution de la différence NDVI",
+     xlab="Δ NDVI (Jan - Dec)", ylab="Fréquence")
+abline(v=0, col="red", lwd=2, lty=2) # 0 abline
+
+
+pairs(dtaMbouzi[, c("perte_ndvi", "pente", "topoexp")], 
+      main = "Corrélations Topographie / NDVI",
+      pch = ".")
+
+
+cor(dtaMbouzi, use = "complete.obs")
+plot(dtaMbouzi$topoexp,dtaMbouzi$perte_ndvi,
+     col = "cornflowerblue")
+abline(lm(perte_ndvi ~ topoexp, data = dtaMbouzi), col = "orange", lwd = 2, lty = 2)
+
+
+```
+
+D'après ces tests, on peut dire qu'il y a une différence significative entre le changement de NDVI et l'exposition topographique de la zone de Mbouzi. 
