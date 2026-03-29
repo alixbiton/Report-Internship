@@ -1,0 +1,44 @@
+---
+title: 'Rapport hebdomadaire 9&10'
+author: "Alix Biton"
+date: "2026-03-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 9&10 (23-27/03)
+
+### Objectifs
+
+-   Etablir des petites zones d'études
+-   Faire le masque de forêt
+-   Faire le modèle type Kurt McLaren
+
+### Masque de forêt
+
+Les masques de forêts disponibles grâce aux travaux de Thani permettent d'avoir une petite zone d'étude de "forêt publique" ou de "parc ou réserve". J'ai en premier lieu fait avec seulement "forêt publique" et, couplé aux données NDVI disponibles en décembre et janvier, il ne reste seulement quelques zones disponibles.
+
+**(photos masque restant pour différence NDVI, dem, dec et jan)**
+
+J'ai pu en extraire quelques données quantitatives récapitulatives : - Altitude - Longitude - Latitude - Vitesse Maximale au cours du cyclone - Exposition topographique (pour différents angles allant de 6 à 20°) - Pente - Différence de NDVI (janvier - décembre)
+
+Grâce à cela, quelques métriques et premiers modèles émergent.
+
+### Modèle type Kurt McLaren
+
+Le modèle utilisé par Kurt McLaren (<https://doi.org/10.1016/j.agrformet.2019.107621>) est comme un indice de vulnérabilité d'exposition décrit comme ceci :$(sum(vitesse_i * exposure_i))/n$ avec n le nombre total de lieux d'intérêt et i l'indice d'un de ces lieux.
+
+J'ai donc calculé cet indice tel que i soit un pixel et n le nombre de pixels disponibles.
+
+De plus, dans cet article, les auteurs mentionnent un angle de 20° (angle d'ouverture de canopée) qui serait utilisé aussi en Jamaique par *Boose et al. (1994)*. J'ai donc regardé le % de zones exposées, de zones protégées ainsi que le % de dégâts en fonction de la zone dans laquelle elle se situe (exposées ou protégée)
+
+**(barplot percentage)**
+
+### Zones d'études possibles ? 
+
+Il faut que les zones d'études soient une zone forestière avec une différence de NDVI marquée c'est-à-dire significative une exposition topographique plutôt marquée (altitude élevée, plus que pour Mbouzi). 
+
+Il ne reste pas beaucoup de zones disponibles après le masquage mais voici quelques zones possibles. 
