@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Semaine 9&10 (23-27/03)
+## Semaine 11 (23-27/03)
 
 ### Objectifs
 
@@ -50,6 +50,7 @@ J'ai donc calculé cet indice tel que i soit un pixel et n le nombre de pixels d
 De plus, dans cet article, les auteurs mentionnent un angle de 20° (angle d'ouverture de canopée) qui serait utilisé aussi en Jamaique par *Boose et al. (1994)*. J'ai donc regardé le % de zones exposées, de zones protégées ainsi que le % de dégâts en fonction de la zone dans laquelle elle se situe (exposées ou protégée)
 
 ![](../images/barplot-boose.png)
+
 ```{r dta, include = FALSE}
 dta <- read.table("/home/abiton/Documents/scriptR tests/datasummary.csv", sep = ",", header = T)
 ```
@@ -81,4 +82,3 @@ summary(mkurt)
 
 Il faut que les zones d'études soient une zone forestière avec une différence de NDVI marquée c'est-à-dire significative une exposition topographique plutôt marquée (altitude élevée, plus que pour Mbouzi).
 
-Il ne reste pas beaucoup de zones disponibles après le masquage mais voici quelques zones possibles.
