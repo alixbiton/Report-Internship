@@ -53,7 +53,7 @@ website:
                text: "Semaine 9&10"
              - href: hebdos/hebdo_11.Rmd
                text: "Semaine 11"
-             - href: hebdos/hebdo12.Rmd
+             - href: hebdos/hebdo_12.Rmd
                text: "Semaine 12"
       
 format:
