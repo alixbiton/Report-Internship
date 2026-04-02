@@ -97,11 +97,79 @@ Où angle est une variable quantitative avec les valeurs d'exposition topographi
 Pour prédire lequel est le mieux, j'ai fait varier entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20). 
 
 Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles : 
+
 -   AIC : plus il est faible, meilleur est le modèle
 -   R² : plus il est proche de 1, meilleur est le modèle
 -   Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts. 
 
-![](../images/angAnalysisMay.png)
+Voici le code pour plotter les résultats de ces modèles : 
+
+```{r plot paramater model, warning = FALSE}
+dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", header = TRUE, sep = ",")
+
+# names of angles variables
+angles_cols <- paste0("ang", seq(2, 20, by = 2))
+
+# empty dataframe to stock parameters
+results <- data.frame(
+  angle = angles_cols,
+  AIC = NA,
+  R2_adj = NA,
+  p_value = NA,
+  estimate = NA
+)
+
+
+# compute model to stock in results
+for (i in 1:length(angles_cols)) {
+  var_angle <- angles_cols[i]
+  
+  # formula for linear model
+  formule <- as.formula(paste("perte_ndvi ~", var_angle))
+  
+  # model
+  model <- lm(formule, data = dta)
+  
+  # get parameters
+  results$AIC[i]    <- AIC(model)
+  results$R2_adj[i] <- summary(model)$adj.r.squared
+  results$p_value[i] <- summary(model)$coefficients[var_angle, 4]
+  results$estimate[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+}
+
+print(results)
+
+# identification best angle
+
+bestaic <- which.min(results$AIC)
+bestr2 <- which.max(results$R2_adj)
+bestestimate <- which.max(abs(results$estimate))
+
+
+# plots
+
+par(mfrow = c(2,2))
+
+plot(dta$longitude, dta$latitude, col = "darkgreen", pch = 20, asp = 1,
+     main = "Points extraits : Tout Mayotte",
+     xlab = "Longitude", ylab = "Latitude")
+
+plot(seq(2, 20, 2), results$AIC, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "AIC",
+     main = "Comparaison de l'AIC")
+points(seq(2, 20, 2)[bestaic], results$AIC[bestaic], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+points(seq(2,20,2)[bestr2], results$R2_adj[bestr2], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), results$estimate, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Estimate",
+     main = "Comparaison de l'estimate")
+points(seq(2,20,2)[bestestimate], results$estimate[bestestimate], col = "red", cex = 2, lwd = 2)
+
+```
 
 La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations) 
 
