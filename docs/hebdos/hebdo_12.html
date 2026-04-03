@@ -367,32 +367,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="masque-réserve-et-parc" class="level3">
 <h3 class="anchored" data-anchor-id="masque-réserve-et-parc">Masque réserve et parc</h3>
 <p>A partir des données de Thani, on obtient un masque montrant seulement les forêts publiques et les parcs et réserves naturelles de Mayotte.</p>
-<div class="cell">
+<div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="hebdo_12_files/figure-html/plot mask-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_12_files/figure-html/plot mask-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="hebdo_12_files/figure-html/plot mask-2.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_12_files/figure-html/plot mask-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="hebdo_12_files/figure-html/plot mask-3.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_12_files/figure-html/plot mask-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="hebdo_12_files/figure-html/plot mask-4.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_12_files/figure-html/plot mask-4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -404,7 +404,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(diffNdvi <span class="sc">~</span> angle, <span class="at">data =</span> dta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Où angle est une variable quantitative avec les valeurs d’exposition topographique au vent calculé avec un angle d’inflexion fixé. Pour prédire lequel est le mieux, j’ai fait varier entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20).</p>
+<p>Où angle est une variable quantitative avec les valeurs d’exposition topographique au vent calculé avec un angle d’inflexion fixé. Pour prédire lequel est le mieux, j’ai fait varier l’exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20).</p>
 <p>Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles :</p>
 <ul>
 <li>AIC : plus il est faible, meilleur est le modèle</li>
@@ -424,81 +424,176 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC =</span> <span class="cn">NA</span>,</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2_adj =</span> <span class="cn">NA</span>,</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">p_value =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> <span class="cn">NA</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># compute model to stock in results</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(angles_cols)) {</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  var_angle <span class="ot">&lt;-</span> angles_cols[i]</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># formula for linear model</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  formule <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"perte_ndvi ~"</span>, var_angle))</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># model</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">lm</span>(formule, <span class="at">data =</span> dta)</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get parameters</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>AIC[i]    <span class="ot">&lt;-</span> <span class="fu">AIC</span>(model)</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>R2_adj[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>adj.r.squared</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>p_value[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[var_angle, <span class="dv">4</span>]</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>estimate[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[var_angle, <span class="st">"Estimate"</span>]</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">pente_angle =</span> <span class="cn">NA</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">pente_msw =</span> <span class="cn">NA</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">coef_interaction =</span> <span class="cn">NA</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># compute model to stock in results</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(angles_cols)) {</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  var_angle <span class="ot">&lt;-</span> angles_cols[i]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># formula for linear model</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  formule <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"perte_ndvi ~"</span>, var_angle, <span class="st">"* msw_max"</span>))</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># model</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">lm</span>(formule, <span class="at">data =</span> dta)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get parameters</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>AIC[i]    <span class="ot">&lt;-</span> <span class="fu">AIC</span>(model)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>R2_adj[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>adj.r.squared</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>p_value[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[var_angle, <span class="dv">4</span>]</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>pente_angle[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[var_angle, <span class="st">"Estimate"</span>]</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>pente_msw[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[<span class="dv">3</span>,<span class="dv">1</span>]</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  results<span class="sc">$</span>coef_interaction[i] <span class="ot">&lt;-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coefficients[<span class="dv">4</span>,<span class="dv">1</span>]</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(results)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   angle       AIC     R2_adj       p_value   estimate
-1   ang2 -12499.45 0.03960899 1.487412e-193 -0.1913342
-2   ang4 -12503.36 0.03978160 2.098054e-194 -0.1920958
-3   ang6 -12507.21 0.03995136 3.055836e-195 -0.1930782
-4   ang8 -12511.00 0.04011856 4.580112e-196 -0.1942869
-5  ang10 -12514.74 0.04028349 7.041876e-197 -0.1957286
-6  ang12 -12518.44 0.04044641 1.107452e-197 -0.1974113
-7  ang14 -12522.09 0.04060753 1.776920e-198 -0.1993445
-8  ang16 -12525.71 0.04076706 2.902176e-199 -0.2015394
-9  ang18 -12529.30 0.04092517 4.815382e-200 -0.2040087
-10 ang20 -12532.86 0.04108202 8.103417e-201 -0.2067674</code></pre>
+<pre><code>   angle       AIC    R2_adj      p_value pente_angle   pente_msw
+1   ang2 -17657.53 0.2422723 1.028568e-16   0.6989577 -0.02366650
+2   ang4 -17668.96 0.2426700 3.015083e-17   0.7119794 -0.02311048
+3   ang6 -17680.43 0.2430691 8.635833e-18   0.7259099 -0.02253623
+4   ang8 -17691.98 0.2434704 2.409551e-18   0.7408304 -0.02194223
+5  ang10 -17703.62 0.2438748 6.528025e-19   0.7568288 -0.02132679
+6  ang12 -17715.39 0.2442833 1.711247e-19   0.7740017 -0.02068799
+7  ang14 -17727.30 0.2446967 4.323830e-20   0.7924552 -0.02002370
+8  ang16 -17739.39 0.2451160 1.048671e-20   0.8123064 -0.01933154
+9  ang18 -17751.69 0.2455423 2.430197e-21   0.8336858 -0.01860884
+10 ang20 -17764.22 0.2459766 5.354222e-22   0.8567390 -0.01785260
+   coef_interaction
+1       -0.01621905
+2       -0.01648396
+3       -0.01676961
+4       -0.01707765
+5       -0.01740991
+6       -0.01776837
+7       -0.01815524
+8       -0.01857296
+9       -0.01902427
+10      -0.01951220</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># identification best angle</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>bestaic <span class="ot">&lt;-</span> <span class="fu">which.min</span>(results<span class="sc">$</span>AIC)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>bestr2 <span class="ot">&lt;-</span> <span class="fu">which.max</span>(results<span class="sc">$</span>R2_adj)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>bestestimate <span class="ot">&lt;-</span> <span class="fu">which.max</span>(<span class="fu">abs</span>(results<span class="sc">$</span>estimate))</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># plots</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>))</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(dta<span class="sc">$</span>longitude, dta<span class="sc">$</span>latitude, <span class="at">col =</span> <span class="st">"darkgreen"</span>, <span class="at">pch =</span> <span class="dv">20</span>, <span class="at">asp =</span> <span class="dv">1</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Points extraits : Tout Mayotte"</span>,</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Longitude"</span>, <span class="at">ylab =</span> <span class="st">"Latitude"</span>)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">20</span>, <span class="dv">2</span>), results<span class="sc">$</span>AIC, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"darkblue"</span>,</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Angle d'inflexion (°)"</span>, <span class="at">ylab =</span> <span class="st">"AIC"</span>,</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Comparaison de l'AIC"</span>)</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">20</span>, <span class="dv">2</span>)[bestaic], results<span class="sc">$</span>AIC[bestaic], <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">cex =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">seq</span>(<span class="dv">2</span>,<span class="dv">20</span>,<span class="dv">2</span>), results<span class="sc">$</span>R2_adj, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"olivedrab3"</span>,</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Angle d'inflexion (°)"</span>, <span class="at">ylab =</span> <span class="st">"R2"</span>,</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Comparaison du paramètre R2"</span>)</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">seq</span>(<span class="dv">2</span>,<span class="dv">20</span>,<span class="dv">2</span>)[bestr2], results<span class="sc">$</span>R2_adj[bestr2], <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">cex =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">seq</span>(<span class="dv">2</span>,<span class="dv">20</span>,<span class="dv">2</span>), results<span class="sc">$</span>estimate, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"orange"</span>,</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Angle d'inflexion (°)"</span>, <span class="at">ylab =</span> <span class="st">"Estimate"</span>,</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Comparaison de l'estimate"</span>)</span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">seq</span>(<span class="dv">2</span>,<span class="dv">20</span>,<span class="dv">2</span>)[bestestimate], results<span class="sc">$</span>estimate[bestestimate], <span class="at">col =</span> <span class="st">"red"</span>, <span class="at">cex =</span> <span class="dv">2</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="hebdo_12_files/figure-html/plot paramater model-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_12_files/figure-html/plot model-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/plot model-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/plot model-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+<section id="autre-échantillon" class="level4">
+<h4 class="anchored" data-anchor-id="autre-échantillon">Autre échantillon</h4>
 <p>La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j’ai voulu tester sur un sous-echantillon qui est l’îlot de Mbouzi (718 observations)</p>
-<p><img src="../images/angAnalysisMbouzi.png" class="img-fluid"></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(resultsMbouzi)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   angle       AIC    R2_adj     p_value pente_angle   pente_msw
+1   ang2 -2041.872 0.4395385 0.009745843   -12.18315 -0.04222670
+2   ang4 -2044.974 0.4419550 0.008897457   -12.31509 -0.04933498
+3   ang6 -2048.065 0.4443518 0.008095248   -12.46554 -0.05659260
+4   ang8 -2051.150 0.4467341 0.007338215   -12.63536 -0.06402317
+5  ang10 -2054.235 0.4491067 0.006625370   -12.82558 -0.07165193
+6  ang12 -2057.328 0.4514744 0.005955751   -13.03738 -0.07950606
+7  ang14 -2060.434 0.4538418 0.005328419   -13.27216 -0.08761502
+8  ang16 -2063.558 0.4562136 0.004742463   -13.53152 -0.09601103
+9  ang18 -2066.709 0.4585943 0.004196991   -13.81728 -0.10472951
+10 ang20 -2069.891 0.4609884 0.003691129   -14.13158 -0.11380967
+   coef_interaction
+1         0.1963699
+2         0.1985208
+3         0.2009713
+4         0.2037354
+5         0.2068297
+6         0.2102737
+7         0.2140899
+8         0.2183044
+9         0.2229471
+10        0.2280523</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/plot Mbouzi-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/plot Mbouzi-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/plot Mbouzi-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>De plus, j’ai tenté avec des sous-échantillon aléatoires, les résultats sont à chaque fois similaires.</p>
+</section>
+<section id="jusquà-100" class="level4">
+<h4 class="anchored" data-anchor-id="jusquà-100">Jusqu’à 100°</h4>
+<p>En calculant l’exposition topographique pour des angles allant jusqu’à 100°, on peut voir le R maximum, l’AIC minimum ainsi que les différentes pentes et c’est aux alentours de 80°. Est-ce que cela est pertinent du coup ?</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-4.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
 </section>
 </section>
 <section id="modèle-intégré" class="level1">

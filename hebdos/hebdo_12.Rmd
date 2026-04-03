@@ -63,7 +63,7 @@ diff_ndvi <- jan_final - dec_final
 
 ```
 
-```{r plot mask, echo = FALSE}
+```{r plot mask, echo = FALSE, fig.align='center'}
 
 plot(dem_final, main = "DEM (Masque forêt et reserve)")
 plot(contour_auto, add = TRUE, border = "black")
@@ -94,7 +94,7 @@ lm(diffNdvi ~ angle, data = dta)
 ```
 
 Où angle est une variable quantitative avec les valeurs d'exposition topographique au vent calculé avec un angle d'inflexion fixé. 
-Pour prédire lequel est le mieux, j'ai fait varier entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20). 
+Pour prédire lequel est le mieux, j'ai fait varier l'exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20). 
 
 Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles : 
 
@@ -116,7 +116,9 @@ results <- data.frame(
   AIC = NA,
   R2_adj = NA,
   p_value = NA,
-  estimate = NA
+  pente_angle = NA,
+  pente_msw = NA,
+  coef_interaction = NA
 )
 
 
@@ -125,7 +127,7 @@ for (i in 1:length(angles_cols)) {
   var_angle <- angles_cols[i]
   
   # formula for linear model
-  formule <- as.formula(paste("perte_ndvi ~", var_angle))
+  formule <- as.formula(paste("perte_ndvi ~", var_angle, "* msw_max"))
   
   # model
   model <- lm(formule, data = dta)
@@ -134,48 +136,193 @@ for (i in 1:length(angles_cols)) {
   results$AIC[i]    <- AIC(model)
   results$R2_adj[i] <- summary(model)$adj.r.squared
   results$p_value[i] <- summary(model)$coefficients[var_angle, 4]
-  results$estimate[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+  results$pente_angle[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+  results$pente_msw[i] <- summary(model)$coefficients[3,1]
+  results$coef_interaction[i] <- summary(model)$coefficients[4,1]
 }
 
 print(results)
 
+
+
+```
+
+```{r plot model, echo = FALSE, fig.align='center'} 
 # identification best angle
 
 bestaic <- which.min(results$AIC)
 bestr2 <- which.max(results$R2_adj)
-bestestimate <- which.max(abs(results$estimate))
+bestpenteangle <- which.max(abs(results$pente_angle))
 
 
 # plots
 
-par(mfrow = c(2,2))
+par(mfrow = c(1,2))
 
 plot(dta$longitude, dta$latitude, col = "darkgreen", pch = 20, asp = 1,
      main = "Points extraits : Tout Mayotte",
      xlab = "Longitude", ylab = "Latitude")
+
 
 plot(seq(2, 20, 2), results$AIC, type = "b", pch = 19, col = "darkblue",
      xlab = "Angle d'inflexion (°)", ylab = "AIC",
      main = "Comparaison de l'AIC")
 points(seq(2, 20, 2)[bestaic], results$AIC[bestaic], col = "red", cex = 2, lwd = 2)
 
+
 plot(seq(2,20,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
      xlab = "Angle d'inflexion (°)", ylab = "R2",
      main = "Comparaison du paramètre R2")
 points(seq(2,20,2)[bestr2], results$R2_adj[bestr2], col = "red", cex = 2, lwd = 2)
 
-plot(seq(2,20,2), results$estimate, type = "b", pch = 19, col = "orange",
-     xlab = "Angle d'inflexion (°)", ylab = "Estimate",
-     main = "Comparaison de l'estimate")
-points(seq(2,20,2)[bestestimate], results$estimate[bestestimate], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), results$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+points(seq(2,20,2)[bestpenteangle], results$pente_angle[bestpenteangle], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), results$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,20,2), results$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
+
+#### Autre échantillon
+La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations) 
+
+```{r mbouzi dta, warning = FALSE, echo = FALSE}
+
+lon_min <- 45.228889
+lon_max <- 45.241055
+lat_min <- -12.818204
+lat_max <- -12.803578
+
+
+# Filtrage du data frame
+dtaMbouzi <- subset(dta, 
+                        longitude >= lon_min & longitude <= lon_max & 
+                          latitude >= lat_min & latitude <= lat_max)
+
+resultsMbouzi <- data.frame(
+  angle = angles_cols,
+  AIC = NA,
+  R2_adj = NA,
+  p_value = NA,
+  pente_angle = NA,
+  pente_msw = NA,
+  coef_interaction = NA
+)
+
+
+# compute model to stock in results
+for (i in 1:length(angles_cols)) {
+  var_angle <- angles_cols[i]
+  
+  # formula for linear model
+  formule <- as.formula(paste("perte_ndvi ~", var_angle, "* msw_max"))
+  
+  # model
+  model <- lm(formule, data = dtaMbouzi)
+  
+  # get parameters
+  resultsMbouzi$AIC[i]    <- AIC(model)
+  resultsMbouzi$R2_adj[i] <- summary(model)$adj.r.squared
+  resultsMbouzi$p_value[i] <- summary(model)$coefficients[var_angle, 4]
+  resultsMbouzi$pente_angle[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+  resultsMbouzi$pente_msw[i] <- summary(model)$coefficients[3,1]
+  resultsMbouzi$coef_interaction[i] <- summary(model)$coefficients[4,1]
+}
+```
+
+```{r print mbouzi}
+print(resultsMbouzi)
 
 ```
 
-La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations) 
+```{r plot Mbouzi, echo = FALSE, fig.align='center'}
+bestaic <- which.min(resultsMbouzi$AIC)
+bestr2 <- which.max(resultsMbouzi$R2_adj)
+bestpenteangle <- which.max(abs(resultsMbouzi$pente_angle))
 
-![](../images/angAnalysisMbouzi.png)
+
+# plots
+
+par(mfrow = c(1,2))
+
+plot(dtaMbouzi$longitude, dtaMbouzi$latitude, col = "darkgreen", pch = 20, asp = 1,
+     main = "Points extraits : îlot Mbouzi",
+     xlab = "Longitude", ylab = "Latitude")
+
+
+plot(seq(2, 20, 2), resultsMbouzi$AIC, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "AIC",
+     main = "Comparaison de l'AIC")
+points(seq(2, 20, 2)[bestaic], resultsMbouzi$AIC[bestaic], col = "red", cex = 2, lwd = 2)
+
+
+plot(seq(2,20,2), resultsMbouzi$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+points(seq(2,20,2)[bestr2], resultsMbouzi$R2_adj[bestr2], col = "red", cex = 2, lwd = 2)
+
+
+plot(seq(2,20,2), resultsMbouzi$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+points(seq(2,20,2)[bestpenteangle], resultsMbouzi$pente_angle[bestpenteangle], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), resultsMbouzi$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,20,2), resultsMbouzi$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
 
 De plus, j'ai tenté avec des sous-échantillon aléatoires, les résultats sont à chaque fois similaires. 
+
+#### Jusqu'à 100° 
+
+En calculant l'exposition topographique pour des angles allant jusqu'à 100°, on peut voir le R maximum, l'AIC minimum ainsi que les différentes pentes et c'est aux alentours de 80°. Est-ce que cela est pertinent du coup ? 
+
+
+```{r 100ang,echo = FALSE, fig.align='center'}
+
+results <- read.csv("~/Documents/scriptR tests/results100ang.csv", header = TRUE, sep = ",")
+
+par(mfrow = c(1,1))
+
+
+plot(seq(2, 100, 2), results$AIC, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "AIC",
+     main = "Comparaison de l'AIC")
+
+
+plot(seq(2,100,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+
+
+plot(seq(2,100,2), results$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+
+
+plot(seq(2,100,2), results$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,100,2), results$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
 
 # Modèle intégré
 
