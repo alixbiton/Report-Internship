@@ -316,6 +316,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#masque-réserve-et-parc" id="toc-masque-réserve-et-parc" class="nav-link" data-scroll-target="#masque-réserve-et-parc">Masque réserve et parc</a></li>
   <li><a href="#quel-angle-prédit-le-mieux" id="toc-quel-angle-prédit-le-mieux" class="nav-link" data-scroll-target="#quel-angle-prédit-le-mieux">Quel angle prédit le mieux ?</a></li>
   </ul></li>
+  <li><a href="#carte-de-différences-en-fonction-des-angles" id="toc-carte-de-différences-en-fonction-des-angles" class="nav-link" data-scroll-target="#carte-de-différences-en-fonction-des-angles">Carte de différences en fonction des angles</a></li>
   <li><a href="#modèle-intégré" id="toc-modèle-intégré" class="nav-link" data-scroll-target="#modèle-intégré">Modèle intégré</a></li>
   </ul>
 </nav>
@@ -402,7 +403,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="quel-angle-prédit-le-mieux">Quel angle prédit le mieux ?</h3>
 <p>Boose et al.&nbsp;(1994) fixe aléatoirement un angle d’inflexion de référence à 6° tandis que celui présent dans les travaux de McLaren sont de 20° afin de calculer l’exposition topographique au vent. Il faut donc établir quel angle explique le mieux les différences de végétation après Chido. J’ai regardé un modèle très simple :</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(diffNdvi <span class="sc">~</span> angle, <span class="at">data =</span> dta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(diffNdvi <span class="sc">~</span> angle<span class="sc">*</span>msw, <span class="at">data =</span> dta)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Où angle est une variable quantitative avec les valeurs d’exposition topographique au vent calculé avec un angle d’inflexion fixé. Pour prédire lequel est le mieux, j’ai fait varier l’exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20).</p>
 <p>Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles :</p>
@@ -410,6 +411,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>AIC : plus il est faible, meilleur est le modèle</li>
 <li>R² : plus il est proche de 1, meilleur est le modèle</li>
 <li>Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts.</li>
+<li>P-value : afin de vérifier la significativité</li>
 </ul>
 <p>Voici le code pour plotter les résultats de ces modèles :</p>
 <div class="cell">
@@ -592,9 +594,171 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 </div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/100ang-6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 </section>
+</section>
+<section id="carte-de-différences-en-fonction-des-angles" class="level2">
+<h2 class="anchored" data-anchor-id="carte-de-différences-en-fonction-des-angles">Carte de différences en fonction des angles</h2>
+<p>J’ai fait quelques cartes de différences des ecposition topographiques calculées à partir de différents angles et je les ai comparées avec l’exposition topographique de référence (à 6°).</p>
+<p>Si les différences sont :</p>
+<ul>
+<li>negatives : l’angle 6° détecte plus de protection</li>
+<li>nulles : même estimation du tew</li>
+<li>positives : l’angle 6° détecte plus d’exposition</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Loading StormR</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== Loading data  ===
+Open database... ~/Documents/ibtracs.ALL.list.v04r01.csv opened
+Collecting data ...
+=== DONE ===</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `ne_10m_admin_0_map_subunits' from data source 
+  `/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 360 features and 168 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: -180 ymin: -90 xmax: 180 ymax: 83.6341
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== Storms processing ... ===
+
+-&gt; Making buffer: Done
+-&gt; Searching for CHIDO storm ...
+   -&gt; Identifying Storms: Done
+-&gt; Gathering storm(s) ... 
+
+=== DONE with run time 0.1878424 sec ===
+
+SUMMARY:
+(*) LOI: sf object (use getLOI function for further informations
+(*) Buffer size: 300 km
+(*) Number of storms: 1 
+        Name - Tropical season - Scale - Number of observation within buffer:
+        CHIDO - 2025 - 5 - 9 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          
+
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="hebdo_12_files/figure-html/carte tew diff-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 </section>
 <section id="modèle-intégré" class="level1">
 <h1>Modèle intégré</h1>

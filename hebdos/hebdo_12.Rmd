@@ -90,7 +90,7 @@ plot(contour_auto, add = TRUE, border = "black")
 Boose et al. (1994) fixe aléatoirement un angle d'inflexion de référence à 6° tandis que celui présent dans les travaux de McLaren sont de 20° afin de calculer l'exposition topographique au vent. Il faut donc établir quel angle explique le mieux les différences de végétation après Chido. J'ai regardé un modèle très simple : 
 
 ```{r model, warning=FALSE,eval=FALSE}
-lm(diffNdvi ~ angle, data = dta)
+lm(diffNdvi ~ angle*msw, data = dta)
 ```
 
 Où angle est une variable quantitative avec les valeurs d'exposition topographique au vent calculé avec un angle d'inflexion fixé. 
@@ -101,6 +101,7 @@ Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur mo
 -   AIC : plus il est faible, meilleur est le modèle
 -   R² : plus il est proche de 1, meilleur est le modèle
 -   Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts. 
+-   P-value : afin de vérifier la significativité
 
 Voici le code pour plotter les résultats de ces modèles : 
 
@@ -150,7 +151,7 @@ print(results)
 ```{r plot model, echo = FALSE, fig.align='center'} 
 # identification best angle
 
-bestaic <- which.min(results$AIC)
+
 bestr2 <- which.max(results$R2_adj)
 bestpenteangle <- which.max(abs(results$pente_angle))
 
@@ -164,10 +165,9 @@ plot(dta$longitude, dta$latitude, col = "darkgreen", pch = 20, asp = 1,
      xlab = "Longitude", ylab = "Latitude")
 
 
-plot(seq(2, 20, 2), results$AIC, type = "b", pch = 19, col = "darkblue",
-     xlab = "Angle d'inflexion (°)", ylab = "AIC",
-     main = "Comparaison de l'AIC")
-points(seq(2, 20, 2)[bestaic], results$AIC[bestaic], col = "red", cex = 2, lwd = 2)
+plot(seq(2, 20, 2), results$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p-value",
+     main = "Comparaison de la p-value")
 
 
 plot(seq(2,20,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
@@ -244,7 +244,7 @@ print(resultsMbouzi)
 ```
 
 ```{r plot Mbouzi, echo = FALSE, fig.align='center'}
-bestaic <- which.min(resultsMbouzi$AIC)
+
 bestr2 <- which.max(resultsMbouzi$R2_adj)
 bestpenteangle <- which.max(abs(resultsMbouzi$pente_angle))
 
@@ -258,10 +258,9 @@ plot(dtaMbouzi$longitude, dtaMbouzi$latitude, col = "darkgreen", pch = 20, asp =
      xlab = "Longitude", ylab = "Latitude")
 
 
-plot(seq(2, 20, 2), resultsMbouzi$AIC, type = "b", pch = 19, col = "darkblue",
-     xlab = "Angle d'inflexion (°)", ylab = "AIC",
-     main = "Comparaison de l'AIC")
-points(seq(2, 20, 2)[bestaic], resultsMbouzi$AIC[bestaic], col = "red", cex = 2, lwd = 2)
+plot(seq(2, 20, 2), resultsMbouzi$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p-value",
+     main = "Comparaison de la p-value")
 
 
 plot(seq(2,20,2), resultsMbouzi$R2_adj, type = "b", pch = 19, col = "olivedrab3",
@@ -298,10 +297,13 @@ results <- read.csv("~/Documents/scriptR tests/results100ang.csv", header = TRUE
 
 par(mfrow = c(1,1))
 
+plot(seq(2, 100, 2), results$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p value",
+     main = "Comparaison de la p value")
 
-plot(seq(2, 100, 2), results$AIC, type = "b", pch = 19, col = "darkblue",
-     xlab = "Angle d'inflexion (°)", ylab = "AIC",
-     main = "Comparaison de l'AIC")
+plot(seq(2, 100, 2), log(results$p_value), type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "log(p value)",
+     main = "Comparaison de la log(p value)")
 
 
 plot(seq(2,100,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
@@ -322,6 +324,79 @@ plot(seq(2,100,2), results$pente_msw, type = "b", pch = 19, col = "violet",
 plot(seq(2,100,2), results$coef_interaction, type = "b", pch = 19, col = "yellow2",
      xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
      main = "Comparaison interaction")
+```
+
+## Carte de différences en fonction des angles
+
+J'ai fait quelques cartes de différences des ecposition topographiques calculées à partir de différents angles et je les ai comparées avec l'exposition topographique de référence (à 6°).
+
+Si les différences sont : 
+
+-   negatives : l'angle 6° détecte plus de protection
+-   nulles : même estimation du tew
+-   positives : l'angle 6° détecte plus d'exposition
+
+```{r carte tew diff, echo = FALSE}
+
+devtools::load_all(path = "~/Documents/StormR/")
+
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+
+exp2 <- computeExposure(sts, dem_final, product = "Summary", angle = 2, verbose = 0)
+exp4 <- computeExposure(sts, dem_final, product = "Summary", angle = 4, verbose = 0)
+exp6 <- computeExposure(sts, dem_final, product = "Summary", angle = 6, verbose = 0)
+exp8 <- computeExposure(sts, dem_final, product = "Summary", angle = 8, verbose = 0)
+exp10 <- computeExposure(sts, dem_final, product = "Summary", angle = 10, verbose = 0)
+exp12 <- computeExposure(sts, dem_final, product = "Summary", angle = 12, verbose = 0)
+exp14 <- computeExposure(sts, dem_final, product = "Summary", angle = 14, verbose = 0)
+exp16 <- computeExposure(sts, dem_final, product = "Summary", angle = 16, verbose = 0)
+exp18 <- computeExposure(sts, dem_final, product = "Summary", angle = 18, verbose = 0)
+exp20 <- computeExposure(sts, dem_final, product = "Summary", angle = 20, verbose = 0)
+
+exposures <- list(
+  exp2  = exp2,
+  exp4  = exp4,
+  exp8  = exp8,
+  exp10 = exp10,
+  exp12 = exp12,
+  exp14 = exp14,
+  exp16 = exp16,
+  exp18 = exp18,
+  exp20 = exp20
+)
+
+angles <- c(2, 4, 8, 10, 12, 14, 16, 18, 20)
+
+# Boucle pour afficher les différences avec exp6
+par(mfrow = c(3, 3))  # Grille 3x3 pour afficher tous les plots
+
+for (i in seq_along(exposures)) {
+  diff_raster <- exp6 - exposures[[i]]
+  
+  plot(diff_raster,
+       main = paste0("exp6 - exp", angles[i]),
+       col  = colorRampPalette(c("darkblue", "white", "darkred"))(100),
+       legend = TRUE)
+}
+
 ```
 
 # Modèle intégré
