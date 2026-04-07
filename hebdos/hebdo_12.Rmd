@@ -336,7 +336,7 @@ Si les différences sont :
 -   nulles : même estimation du tew
 -   positives : l'angle 6° détecte plus d'exposition
 
-```{r carte tew diff, echo = FALSE}
+```{r carte tew diff, echo = FALSE, warning = FALSE, message= FALSE}
 
 devtools::load_all(path = "~/Documents/StormR/")
 
