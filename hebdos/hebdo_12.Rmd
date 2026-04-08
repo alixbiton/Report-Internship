@@ -24,7 +24,7 @@ A partir des données de Thani, on obtient un masque montrant seulement les for�
 ```{r prepa mask, include = FALSE}
 library(terra)
 library(sf)
-
+library(dplyr)
 dec  <- rast("/home/abiton/Documents/sentinel/L2A/before/decNDVI.tif")
 jan  <- rast("/home/abiton/Documents/sentinel/L2A/after/janNDVI.tif")
 dem  <- rast("/home/abiton/Documents/dem_data/dem_mayotte.tif")
@@ -85,25 +85,24 @@ plot(contour_auto, add = TRUE, border = "black")
 
 ```
 
-### Quel angle prédit le mieux ? 
+### Quel angle prédit le mieux ?
 
-Boose et al. (1994) fixe aléatoirement un angle d'inflexion de référence à 6° tandis que celui présent dans les travaux de McLaren sont de 20° afin de calculer l'exposition topographique au vent. Il faut donc établir quel angle explique le mieux les différences de végétation après Chido. J'ai regardé un modèle très simple : 
+Boose et al. (1994) fixe aléatoirement un angle d'inflexion de référence à 6° tandis que celui présent dans les travaux de McLaren sont de 20° afin de calculer l'exposition topographique au vent. Il faut donc établir quel angle explique le mieux les différences de végétation après Chido. J'ai regardé un modèle très simple :
 
 ```{r model, warning=FALSE,eval=FALSE}
 lm(diffNdvi ~ angle*msw, data = dta)
 ```
 
-Où angle est une variable quantitative avec les valeurs d'exposition topographique au vent calculé avec un angle d'inflexion fixé. 
-Pour prédire lequel est le mieux, j'ai fait varier l'exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20). 
+Où angle est une variable quantitative avec les valeurs d'exposition topographique au vent calculé avec un angle d'inflexion fixé. Pour prédire lequel est le mieux, j'ai fait varier l'exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20).
 
-Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles : 
+Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles :
 
 -   AIC : plus il est faible, meilleur est le modèle
 -   R² : plus il est proche de 1, meilleur est le modèle
--   Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts. 
+-   Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts.
 -   P-value : afin de vérifier la significativité
 
-Voici le code pour plotter les résultats de ces modèles : 
+Voici le code pour plotter les résultats de ces modèles :
 
 ```{r plot paramater model, warning = FALSE}
 dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", header = TRUE, sep = ",")
@@ -148,7 +147,7 @@ print(results)
 
 ```
 
-```{r plot model, echo = FALSE, fig.align='center'} 
+```{r plot model, echo = FALSE, fig.align='center'}
 # identification best angle
 
 
@@ -192,7 +191,8 @@ plot(seq(2,20,2), results$coef_interaction, type = "b", pch = 19, col = "yellow2
 ```
 
 #### Autre échantillon
-La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations) 
+
+La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations)
 
 ```{r mbouzi dta, warning = FALSE, echo = FALSE}
 
@@ -284,12 +284,11 @@ plot(seq(2,20,2), resultsMbouzi$coef_interaction, type = "b", pch = 19, col = "y
      main = "Comparaison interaction")
 ```
 
-De plus, j'ai tenté avec des sous-échantillon aléatoires, les résultats sont à chaque fois similaires. 
+De plus, j'ai tenté avec des sous-échantillon aléatoires, les résultats sont à chaque fois similaires.
 
-#### Jusqu'à 100° 
+#### Jusqu'à 100°
 
-En calculant l'exposition topographique pour des angles allant jusqu'à 100°, on peut voir le R maximum, l'AIC minimum ainsi que les différentes pentes et c'est aux alentours de 80°. Est-ce que cela est pertinent du coup ? 
-
+En calculant l'exposition topographique pour des angles allant jusqu'à 100°, on peut voir le R maximum, l'AIC minimum ainsi que les différentes pentes et c'est aux alentours de 80°. Est-ce que cela est pertinent du coup ?
 
 ```{r 100ang,echo = FALSE, fig.align='center'}
 
@@ -330,7 +329,7 @@ plot(seq(2,100,2), results$coef_interaction, type = "b", pch = 19, col = "yellow
 
 J'ai fait quelques cartes de différences des ecposition topographiques calculées à partir de différents angles et je les ai comparées avec l'exposition topographique de référence (à 6°).
 
-Si les différences sont : 
+Si les différences sont :
 
 -   negatives : l'angle 6° détecte plus de protection
 -   nulles : même estimation du tew
@@ -360,16 +359,16 @@ sts <- defStormsList(
 )
 
 
-exp2 <- computeExposure(sts, dem_final, product = "Summary", angle = 2, verbose = 0)
-exp4 <- computeExposure(sts, dem_final, product = "Summary", angle = 4, verbose = 0)
-exp6 <- computeExposure(sts, dem_final, product = "Summary", angle = 6, verbose = 0)
-exp8 <- computeExposure(sts, dem_final, product = "Summary", angle = 8, verbose = 0)
-exp10 <- computeExposure(sts, dem_final, product = "Summary", angle = 10, verbose = 0)
-exp12 <- computeExposure(sts, dem_final, product = "Summary", angle = 12, verbose = 0)
-exp14 <- computeExposure(sts, dem_final, product = "Summary", angle = 14, verbose = 0)
-exp16 <- computeExposure(sts, dem_final, product = "Summary", angle = 16, verbose = 0)
-exp18 <- computeExposure(sts, dem_final, product = "Summary", angle = 18, verbose = 0)
-exp20 <- computeExposure(sts, dem_final, product = "Summary", angle = 20, verbose = 0)
+exp2 <- computeTEW(sts, dem_final, product = "Summary", angle = 2, verbose = 0)
+exp4 <- computeTEW(sts, dem_final, product = "Summary", angle = 4, verbose = 0)
+exp6 <- computeTEW(sts, dem_final, product = "Summary", angle = 6, verbose = 0)
+exp8 <- computeTEW(sts, dem_final, product = "Summary", angle = 8, verbose = 0)
+exp10 <- computeTEW(sts, dem_final, product = "Summary", angle = 10, verbose = 0)
+exp12 <- computeTEW(sts, dem_final, product = "Summary", angle = 12, verbose = 0)
+exp14 <- computeTEW(sts, dem_final, product = "Summary", angle = 14, verbose = 0)
+exp16 <- computeTEW(sts, dem_final, product = "Summary", angle = 16, verbose = 0)
+exp18 <- computeTEW(sts, dem_final, product = "Summary", angle = 18, verbose = 0)
+exp20 <- computeTEW(sts, dem_final, product = "Summary", angle = 20, verbose = 0)
 
 exposures <- list(
   exp2  = exp2,
@@ -401,4 +400,91 @@ for (i in seq_along(exposures)) {
 
 # Modèle intégré
 
+Le modèle (Wind Exposure Model WEM) que l'on recherche à faire intègre le vent (MSW) et l'exposition topographique au vent (TEW) sur le temps
 
+$$\text{WEM} = \int \text{MSW}(x,y,t) \times \text{TEW}(x,y,t) \, dt$$
+```{r get msw and tew} 
+#get msw layers
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+speed_layers <- pf[[grep("CHIDO_Speed", names(pf))]]
+
+#project same as dem_final to match tew
+project_raster <- project(speed_layers, dem_final)
+speed_aligned <- crop(project_raster, dem_final)
+speed_layers <- mask(speed_aligned, dem_final)
+
+
+# get tew
+tew6 <- computeTEW(sts, dem_final, product = "PixProfiles", verbose = 0)
+
+# change scale of tew (-1/1 --> 0/1)
+tew_min <- global(tew6, "min", na.rm = TRUE) |> min()
+tew_max <- global(tew6, "max", na.rm = TRUE) |> max()
+
+tew6_norm <- (tew6 - tew_min) / (tew_max - tew_min)
+#check 
+global(tew6_norm, range, na.rm = TRUE)
+
+```
+
+```{r modelkurt}
+dt <- 1  # hour
+n_t <- nlyr(speed_layers)
+
+# integer layer by layer
+wem <- app(speed_layers * tew6_norm, sum, na.rm = TRUE) * dt 
+
+names(wem) <- "wem"
+plot(wem, main = "wem cumulé")
+
+```
+
+Pour chaque cellule, on additionne à chaque heure MSW × TEW. Une cellule avec un WEM élevé a reçu beaucoup de vent et est topographiquement exposée, de façon cumulée sur toute la période.
+
+
+On peut faire quelques statistiques descriptives sur ce modèle. Tout d'abord un petit résumé numérique.
+
+```{r range}
+stats_globales <- global(wem, c("min", "max", "mean", "sd"), na.rm = TRUE)
+print(stats_globales)
+```
+
+On peut aussi faire un histogramme de distribution spatiale 
+
+```{r hist}
+hist(wem,
+     main   = "Distribution spatiale du wem",
+     xlab   = "WEM",
+     ylab   = "Fréquence",
+     col    = "steelblue",
+     border = "white",
+     breaks = 50)
+```
+
+On peut aussi voir la contribution de chaque couche. 
+
+```{r contrib}
+
+
+# moyenne spatiale du produit MSW × TEW à chaque pas de temps
+contrib_temporelle <- global(speed_layers * tew6_norm, "mean", na.rm = TRUE)
+contrib_temporelle$pas <- seq_len(nrow(contrib_temporelle))
+names(contrib_temporelle)[1] <- "contribution_moyenne"
+
+
+plot(contrib_temporelle$pas,
+     contrib_temporelle$contribution_moyenne,
+     type = "l",
+     col  = "steelblue",
+     lwd  = 1.5,
+     main = "Contribution moyenne par pas de temps",
+     xlab = "Pas de temps (h)",
+     ylab = "MSW × TEW moyen")
+
+
+top10 <- contrib_temporelle |>
+  dplyr::arrange(desc(contribution_moyenne)) |>
+  head(10)
+cat("\nTop 10 des pas de temps les plus contributeurs :\n")
+print(top10)
+```
