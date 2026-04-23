@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Semaine 12 (30/03 au 3/04)
+## Semaine 12&13 (30/03 au 11/04)
 
 ### Objectifs
 
@@ -127,7 +127,7 @@ for (i in 1:length(angles_cols)) {
   var_angle <- angles_cols[i]
   
   # formula for linear model
-  formule <- as.formula(paste("perte_ndvi ~", var_angle, "* msw_max"))
+  formule <- as.formula(paste("delta_ndvi ~", var_angle, "* msw_max"))
   
   # model
   model <- lm(formule, data = dta)
@@ -223,7 +223,7 @@ for (i in 1:length(angles_cols)) {
   var_angle <- angles_cols[i]
   
   # formula for linear model
-  formule <- as.formula(paste("perte_ndvi ~", var_angle, "* msw_max"))
+  formule <- as.formula(paste("delta_ndvi ~", var_angle, "* msw_max"))
   
   # model
   model <- lm(formule, data = dtaMbouzi)
@@ -358,17 +358,18 @@ sts <- defStormsList(
   names = c("CHIDO")
 )
 
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
 
-exp2 <- computeTEW(sts, dem_final, product = "Summary", angle = 2, verbose = 0)
-exp4 <- computeTEW(sts, dem_final, product = "Summary", angle = 4, verbose = 0)
-exp6 <- computeTEW(sts, dem_final, product = "Summary", angle = 6, verbose = 0)
-exp8 <- computeTEW(sts, dem_final, product = "Summary", angle = 8, verbose = 0)
-exp10 <- computeTEW(sts, dem_final, product = "Summary", angle = 10, verbose = 0)
-exp12 <- computeTEW(sts, dem_final, product = "Summary", angle = 12, verbose = 0)
-exp14 <- computeTEW(sts, dem_final, product = "Summary", angle = 14, verbose = 0)
-exp16 <- computeTEW(sts, dem_final, product = "Summary", angle = 16, verbose = 0)
-exp18 <- computeTEW(sts, dem_final, product = "Summary", angle = 18, verbose = 0)
-exp20 <- computeTEW(sts, dem_final, product = "Summary", angle = 20, verbose = 0)
+exp2 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 2, verbose = 0)
+exp4 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 4, verbose = 0)
+exp6 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 6, verbose = 0)
+exp8 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 8, verbose = 0)
+exp10 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 10, verbose = 0)
+exp12 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 12, verbose = 0)
+exp14 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 14, verbose = 0)
+exp16 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 16, verbose = 0)
+exp18 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 18, verbose = 0)
+exp20 <- computeTEW(sts, dem_final, pf, product = "Summary", angle = 20, verbose = 0)
 
 exposures <- list(
   exp2  = exp2,
@@ -415,7 +416,7 @@ speed_layers <- mask(speed_aligned, dem_final)
 
 
 # get tew
-tew6 <- computeTEW(sts, dem_final, product = "PixProfiles", verbose = 0)
+tew6 <- computeTEW(sts, dem_final, pf, product = "PixProfiles", verbose = 0)
 
 # change scale of tew (-1/1 --> 0/1)
 tew_min <- global(tew6, "min", na.rm = TRUE) |> min()

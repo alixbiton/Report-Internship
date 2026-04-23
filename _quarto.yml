@@ -13,6 +13,8 @@ website:
           - href: work/melissa.Rmd
             text: "Melissa"
           - href: work/mbouzi.Rmd
+          - href: work/models.Rmd
+            text: "Tests modèles"
       
       - text: "Données"
         menu: 
@@ -53,8 +55,12 @@ website:
                text: "Semaine 9&10"
              - href: hebdos/hebdo_11.Rmd
                text: "Semaine 11"
-             - href: hebdos/hebdo_12.Rmd
-               text: "Semaine 12"
+          - section: "Avril"
+            contents:
+            - href: hebdos/hebdo_12.Rmd
+              text: "Semaine 12&13"
+            - href: hebdos/hebdo_15.Rmd
+              text: "Semaine 15"
       
 format:
   html:

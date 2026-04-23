@@ -1,0 +1,172 @@
+---
+title: 'Tests Modèles'
+author: "Alix Biton"
+date: "2026-14-04"
+output: html_document
+---
+
+### Tests de modèles
+
+Tous les tests réalisés seront effectués avec une exposition topographique au vent calculé avec un angle de **6°**
+
+On peut faire une première visualisation simple des données afin de savoir comment les variables se comportent entre elles.
+
+```{r}
+# donnees ####
+dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", sep = ",", header = TRUE)
+dta <- dta[ ,c("ang6","pente","longitude","latitude","altitude","courbure","msw_max","delta_ndvi","wem","delta_ndii")]
+# découpage des données en un jeu d'entrainement (70%) et un jeu de test (30%)
+set.seed(1234)
+train_id <- sample(nrow(dta), 0.7*nrow(dta))
+dta_train <- dta[train_id, ]
+dta_test <- dta[-train_id, ]
+
+# lissage scatter plot 
+library(car)
+scatterplot(delta_ndvi~msw_max, data=dta_train,
+            regLine=list(method=lm, lty=1, lwd=2, col="red"))
+
+# tableau des variances covariances
+round(cor(dta),2)
+
+library(corrplot)
+corrplot(cor(dta))
+
+# influence de chaque parametre et R2
+cor(dta$delta_ndvi,dta$ang6)^2
+cor(dta$delta_ndvi,dta$msw_max)^2
+ # Les R2 sont tres proches de 0 donc une relation lineaire ne sera pas le bon modele
+# on va tester tout de même 
+
+```
+
+Le coefficient de détermination est proche de 0 ce qui signifie qu'il n'y a pas de relation linéaire entre les variables explicatives testées et le delta de NDVI.
+
+## Modèle linéaire simple
+
+```{r}
+reg1 <- lm(delta_ndvi~msw_max, data=dta_train)
+plot(delta_ndvi~msw_max, data=dta_train, pch = 16)
+abline(reg1,col="red",lwd=2)
+
+
+#### conditions de validités ####
+
+# normalité des résidus
+plot(reg1)
+# QQ plot OK ! 
+hist(residuals(reg1),col="yellow",freq=F)
+densite <- density(residuals(reg1))
+lines(densite, col = "red",lwd=3) 
+
+# homogénéité des variances (scale location)
+# pas plane donc homogénéité des variances pas respectée
+library(lmtest)
+bptest(reg1)
+# homogénéité rejetée
+
+# indépendance des résidus
+dwtest(reg1)
+# p-value supérieure à 0,05 donc on a indépendance des résidus,
+# pas d'autocorrélation spatiale 
+
+summary(reg1)
+```
+
+Toutes les conditions de validité de ce modèle ne sont pas vérifiées (homogénéité des variances pas respecté), de plus on voit clairement que la relation n'est pas linéaire.
+
+## Modèle avec ajout de variables
+
+```{r}
+library(randomForest)
+library(Metrics)
+msw_range <- seq(min(dta$msw_max), max(dta$msw_max), length.out = 300)
+
+# ---- Fonction utilitaire R² ----
+r2 <- function(obs, pred) {
+  1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
+}
+
+# ============================================================
+# 1. MODÈLE LINÉAIRE
+# ============================================================
+m1 <- lm(delta_ndvi ~ msw_max, data = dta_train)
+r2_m1_train <- r2(dta_train$delta_ndvi, predict(m1, dta_train))
+r2_m1_test  <- r2(dta_test$delta_ndvi,  predict(m1, dta_test))
+rmse_m1     <- rmse(dta_test$delta_ndvi, predict(m1, dta_test))
+
+# ============================================================
+# 2. +ang 6
+# ============================================================
+m2 <- lm(delta_ndvi ~ msw_max + ang6, data = dta_train)
+summary(m2)
+r2_m2_train <- r2(dta_train$delta_ndvi, predict(m2, dta_train))
+r2_m2_test  <- r2(dta_test$delta_ndvi,  predict(m2, dta_test))
+rmse_m2     <- rmse(dta_test$delta_ndvi, predict(m2, dta_test))
+
+# ============================================================
+# 3. *ang6
+# ============================================================
+m3 <- lm(delta_ndvi ~ msw_max * ang6, data = dta_train)
+summary(m3)
+r2_m3_train <- r2(dta_train$delta_ndvi, predict(m3, dta_train))
+r2_m3_test  <- r2(dta_test$delta_ndvi,  predict(m3, dta_test))
+rmse_m3     <- rmse(dta_test$delta_ndvi, predict(m3, dta_test))
+
+# ============================================================
+# 4. *ang6 + courbure
+# ============================================================
+m4 <- lm(delta_ndvi ~ msw_max * ang6 + courbure, data = dta_train)
+r2_m4_train <- r2(dta_train$delta_ndvi, predict(m4, dta_train))
+r2_m4_test  <- r2(dta_test$delta_ndvi,  predict(m4, dta_test))
+rmse_m4     <- rmse(dta_test$delta_ndvi, predict(m4, dta_test))
+
+# ============================================================
+# 5. *ang6 + courbure + wem 
+# ============================================================
+
+m5 <- lm(delta_ndvi ~ msw_max * ang6 + courbure + wem, data = dta_train)
+r2_m5_train <- r2(dta_train$delta_ndvi, predict(m5, dta_train))
+r2_m5_test  <- r2(dta_test$delta_ndvi,  predict(m5, dta_test))
+rmse_m5     <- rmse(dta_test$delta_ndvi, predict(m5, dta_test))
+
+# ============================================================
+# 6. RANDOM FOREST (toutes variables)
+# ============================================================
+vars <- c("ang6","pente","altitude","courbure","msw_max")
+
+m6 <- randomForest(
+  x          = dta_train[, vars],
+  y          = dta_train$delta_ndvi,
+  ntree      = 100,
+  importance = TRUE
+)
+r2_m6_train <- r2(dta_train$delta_ndvi, predict(m6, dta_train))
+r2_m6_test  <- r2(dta_test$delta_ndvi,  predict(m6, dta_test))
+rmse_m6     <- rmse(dta_test$delta_ndvi, predict(m6, dta_test))
+
+# ============================================================
+# TABLEAU RÉCAPITULATIF
+# ============================================================
+resultats <- data.frame(
+  Modele     = c("Linéaire", "+ang6", "*ang6",
+                 "+ang6 + pente", "+ang6 + pente + courbure",
+                 "Random Forest (all vars)"),
+  R2_Train   = round(c(r2_m1_train, r2_m2_train, r2_m3_train,
+                       r2_m4_train, r2_m5_train, r2_m6_train), 4),
+  R2_Test    = round(c(r2_m1_test,  r2_m2_test,  r2_m3_test,
+                       r2_m4_test,  r2_m5_test,  r2_m6_test), 4),
+  RMSE_Test  = round(c(rmse_m1, rmse_m2, rmse_m3,
+                       rmse_m4, rmse_m5, rmse_m6), 4)
+)
+print(resultats)
+
+```
+
+## ANOVA de comparaison
+
+```{r}
+anova(m1,m2,m3,m4,m5)
+```
+
+Le meilleur serait le dernier sans le randomForest.

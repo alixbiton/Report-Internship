@@ -70,7 +70,7 @@ Cela suggère que la vitesse maximale moyenne du cyclone (MSW) sur la zone est d
 
 ```{r models}
 # model kurt mclaren 
-mkurt <- lm(perte_ndvi ~ msw_max * ang6, data = dta)
+mkurt <- lm(delta_ndvi ~ msw_max * ang6, data = dta)
 summary(mkurt)
 ```
 

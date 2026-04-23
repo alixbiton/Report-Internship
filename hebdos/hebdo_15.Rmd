@@ -1,0 +1,303 @@
+---
+title: 'Rapport hebdomadaire 15'
+author: "Alix Biton"
+date: "2026-04-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 15 (20/04 au 24/04)
+
+### Filtrer le jeu de données
+```{r loadStormR,include = FALSE, results='hide'}
+devtools::load_all("/home/abiton/Documents/StormR/")
+library(terra)
+library(sf)
+```
+
+```{r include = FALSE}
+dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", sep = ",", header = TRUE)
+```
+Le masque établi a gardé quelques pixels qui peuvent être interprété par de la mer par les données Sentinel. On va donc filtrer à une altitude dépassant les 50m et un indice de NDVI élevé afin de ne garder seulement les forêts denses pré-cyclones (en décembre pour Chido). 
+
+```{r pbs}
+par(mfrow = c(1,2))
+hist(dta$altitude, breaks = 50, col = "lightblue",
+     xlab = "Altitude", main = NULL)
+abline(v = 50, col = "red", lty = 2)
+hist(dta$dec_ndvi, breaks = 50, col = "lightgreen",
+     xlab = "NDVI pré-cyclonique", main = NULL)
+abline(v = 0.7, col = "red", lty = 2)
+plot(dta$msw_max, dta$delta_ndvi)
+```
+
+On peut voir les pixels parasites aux alentours de 10m d'altitude. De plus, le NDVI de décembre est caractérisé par des forêts denses en majorité, on établit donc un seuil de 0.7. Cela nous permettra d'éliminer l'effet que l'on peut voir dans le troisième graphique où, lorsque le vent est plus fort, on a passé un certain seuil, une remontée du delta_ndvi. 
+
+```{r filtre}
+dtaFiltered <- dta[(dta["dec_ndvi"] > 0.7) & (dta["altitude"] >= 50),]
+
+par(mfrow = c(1,2))
+hist(dtaFiltered$altitude, breaks = 50, col = "lightblue",
+     xlab = "Altitude", main = "après filtre")
+hist(dtaFiltered$dec_ndvi, breaks = 20, col = "lightgreen",
+     xlab = "NDVI pre-cyclonique", main = "après filtre")
+```
+
+Ce filtrage devrait considérablement améliorer les modèles. 
+De plus, il faut standardisé les différentes variables afin qu'elles soient comparables entre elles. 
+
+```{r scale} 
+scaledVar <- c("altitude","wem","pente","courbure","ang6","msw_max")
+dtaScaled <- dtaFiltered
+dtaScaled[scaledVar] <- lapply(dtaScaled[scaledVar], scale)
+
+summary(dtaFiltered$altitude)
+summary(dtaScaled$altitude)
+```
+
+On peut enfin séparer le jeu de données en un jeu d'entrainement et un jeu de test pour vérifier comment les mdèles prédisent les différences de végétation après un cyclone. 
+
+```{r test and train} 
+set.seed(1234)
+train_id <- sample(nrow(dtaScaled), 0.7*nrow(dtaScaled))
+dta_train <- dtaScaled[train_id, ]
+dta_test <- dtaScaled[-train_id, ]
+```
+Les données sont prêtes ! 
+
+### Modèles
+
+```{r models}
+library(randomForest)
+library(Metrics)
+msw_range <- seq(min(dta$msw_max), max(dta$msw_max), length.out = 300)
+
+# ---- Fonction utilitaire R² ----
+r2 <- function(obs, pred) {
+  1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
+}
+
+# ============================================================
+# 1. MODÈLE LINÉAIRE
+# ============================================================
+m1 <- lm(delta_ndvi ~ msw_max, data = dta_train)
+summary(m1)
+
+# ============================================================
+# 2. +ang 6
+# ============================================================
+m2 <- lm(delta_ndvi ~ msw_max + ang6, data = dta_train)
+summary(m2)
+
+# ============================================================
+# 3. *ang6
+# ============================================================
+m3 <- lm(delta_ndvi ~ msw_max * ang6, data = dta_train)
+summary(m3)
+
+
+# ============================================================
+# 4. *ang6 + courbure
+# ============================================================
+m4 <- lm(delta_ndvi ~ msw_max * ang6 + courbure, data = dta_train)
+summary(m4)
+
+
+# ============================================================
+# 5. *ang6 + courbure + wem 
+# ============================================================
+m5 <- lm(delta_ndvi ~ msw_max * ang6 + courbure + wem, data = dta_train)
+summary(m5)
+
+
+# ============================================================
+# 6. RANDOM FOREST (toutes variables)
+# ============================================================
+vars <- c("ang6","pente","altitude","courbure","msw_max")
+
+m6 <- randomForest(
+  x          = dta_train[, vars],
+  y          = dta_train$delta_ndvi,
+  ntree      = 100,
+  importance = TRUE
+)
+
+
+
+```
+
+On peut comparer les R2 : 
+```{r R2, include = FALSE}
+#m1
+r2_m1_train <- r2(dta_train$delta_ndvi, predict(m1, dta_train))
+r2_m1_test  <- r2(dta_test$delta_ndvi,  predict(m1, dta_test))
+rmse_m1     <- rmse(dta_test$delta_ndvi, predict(m1, dta_test))
+
+#m2
+r2_m2_train <- r2(dta_train$delta_ndvi, predict(m2, dta_train))
+r2_m2_test  <- r2(dta_test$delta_ndvi,  predict(m2, dta_test))
+rmse_m2     <- rmse(dta_test$delta_ndvi, predict(m2, dta_test))
+
+#m3
+r2_m3_train <- r2(dta_train$delta_ndvi, predict(m3, dta_train))
+r2_m3_test  <- r2(dta_test$delta_ndvi,  predict(m3, dta_test))
+rmse_m3     <- rmse(dta_test$delta_ndvi, predict(m3, dta_test))
+
+#m4
+r2_m4_train <- r2(dta_train$delta_ndvi, predict(m4, dta_train))
+r2_m4_test  <- r2(dta_test$delta_ndvi,  predict(m4, dta_test))
+rmse_m4     <- rmse(dta_test$delta_ndvi, predict(m4, dta_test))
+
+#m5
+r2_m5_train <- r2(dta_train$delta_ndvi, predict(m5, dta_train))
+r2_m5_test  <- r2(dta_test$delta_ndvi,  predict(m5, dta_test))
+rmse_m5     <- rmse(dta_test$delta_ndvi, predict(m5, dta_test))
+
+#m6
+r2_m6_train <- r2(dta_train$delta_ndvi, predict(m6, dta_train))
+r2_m6_test  <- r2(dta_test$delta_ndvi,  predict(m6, dta_test))
+rmse_m6     <- rmse(dta_test$delta_ndvi, predict(m6, dta_test))
+
+# ============================================================
+# TABLEAU RÉCAPITULATIF
+# ============================================================
+resultats <- data.frame(
+  Modele     = c("Linéaire", "+ang6", "*ang6",
+                 "+ang6 + courbure", "+ang6 + courbure + wem",
+                 "Random Forest (all vars)"),
+  R2_Train   = round(c(r2_m1_train, r2_m2_train, r2_m3_train,
+                       r2_m4_train, r2_m5_train, r2_m6_train), 4),
+  R2_Test    = round(c(r2_m1_test,  r2_m2_test,  r2_m3_test,
+                       r2_m4_test,  r2_m5_test,  r2_m6_test), 4),
+  RMSE_Test  = round(c(rmse_m1, rmse_m2, rmse_m3,
+                       rmse_m4, rmse_m5, rmse_m6), 4)
+)
+```
+
+```{r results}
+resultats
+anova(m1,m2,m3,m4,m5)
+```
+
+### Predictions VS Observées
+
+On peut regarder les observations VS les prédictions des différents modèles sur le jeu de test afin de voir si les modèles prédisent correctement les dommages de végétation. 
+
+
+```{r pred}
+
+models <- list(m1 = m1, m2 = m2, m3 = m3, m4 = m4, m5 = m5)
+
+
+par(mfrow = c(2, 3))
+
+for (nom in names(models)) {
+  m <- models[[nom]]
+  pred <- predict(m, newdata = dta_test)
+  obs  <- dta_test$delta_ndvi
+  
+  plot(obs, pred,
+       main = paste(nom, "- Obs vs Pred"),
+       xlab = "Observé", ylab = "Prédit",
+       pch = 16, col = "steelblue")
+  abline(0, 1, col = "red", lwd = 2)  # droite parfaite y = x
+}
+
+```
+
+**Résidus** : Valeur observée - valeur prédite
+Vérifier l'autocorrélation spatiale des résidus dans un contexte spatial grâce au test de Moran. 
+
+
+### Zones d'intérêts
+
+Afin de mieux visualiser à plus petite échelle, on peut établir plusieurs zones d'intérêts : 
+
+-   **Nord** : Au Nord de l'île, ou le vent a frappé plutôt fort (max : 55.5 m/s) avec une altitude allant de 294 à 519m. 
+-   **Sud** : Au Sud de l'île, où le vent a frappé moins fort (max : 50 m/s) avec une altitude allant de 54 à 309m. 
+-   **Mbouzi** : L'ilôt Chissouia Mbouzi où le vent a eu un pic à 61 m/s et son altitude va jusqu'à 149m. 
+
+```{r extractZones, include = FALSE}
+empriseMbouzi    <- ext(45.22965, 45.24033, -12.8182, -12.80250) #mbouzi
+empriseNord <- ext(45.18266,45.19334,-12.77485,-12.75915) #Nord
+empriseSud <- ext(45.15366,45.16434,-12.96385,-12.94815) #Sud
+
+#extraire fonction
+extraire_zone <- function(df, bbox) {
+  df[
+      df$longitude >= bbox[1] & 
+      df$longitude <= bbox[2] &
+      df$latitude  >= bbox[3] & 
+      df$latitude  <= bbox[4], 
+    ]
+}
+# Découpe des 3 zones
+dtaMbouzi   <- extraire_zone(dtaScaled, empriseMbouzi)
+dtaSud    <- extraire_zone(dtaScaled, empriseSud)
+dtaNord <- extraire_zone(dtaScaled, empriseNord)
+```
+
+
+```{r load Chido, include = FALSE, warning=FALSE, results='hide', message=FALSE}
+
+dem  <- rast("/home/abiton/Documents/dem_data/dem_final.tif")
+
+#get cyclone informations (profiles)
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+#get the loi
+map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+#get chido
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+```
+
+```{r tew}
+
+tew6 <- computeTEW(sts, dem, pf, product = "Summary", angle = 6)
+
+rNord   <- crop(tew6, empriseNord)
+rSud    <- crop(tew6, empriseSud)
+rMbouzi <- crop(tew6, empriseMbouzi)
+
+plotTEW(sts,dem,tew6, dynamicPlot = TRUE)
+```
+#### Nord de Mayotte
+
+Voici la zone du Nord de Mayotte : 
+
+```{r Nord} 
+plotTEW(sts, dem, rNord,   main = "Nord")
+```
+
+#### Sud de Mayotte
+
+Voici la zone du Sud de Mayotte : 
+
+```{r Sud}
+plotTEW(sts, dem, rSud, main = "Sud")
+```
+
+#### Ilot Mbouzi
+
+```{r Mbouzi}
+plotTEW(sts, dem, rMbouzi, main = "Mbouzi")
+```
