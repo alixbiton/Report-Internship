@@ -346,6 +346,12 @@ window.Quarto = {
  <span class="menu-text">Semaine 15</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../hebdos/hebdo_16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semaine 16</span></a>
+  </div>
+</li>
       </ul>
   </li>
       </ul>
@@ -684,21 +690,27 @@ window.Quarto = {
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>speed_layers <span class="ot">&lt;-</span> pf[[<span class="fu">grep</span>(<span class="st">"CHIDO_Speed"</span>, <span class="fu">names</span>(pf))]]</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#project same as dem_final to match tew</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>project_raster <span class="ot">&lt;-</span> <span class="fu">project</span>(speed_layers, dem_final)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>speed_aligned <span class="ot">&lt;-</span> <span class="fu">crop</span>(project_raster, dem_final)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>speed_layers <span class="ot">&lt;-</span> <span class="fu">mask</span>(speed_aligned, dem_final)</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co"># get tew</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>tew6 <span class="ot">&lt;-</span> <span class="fu">computeTEW</span>(sts, dem_final, pf, <span class="at">product =</span> <span class="st">"PixProfiles"</span>, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># change scale of tew (-1/1 --&gt; 0/1)</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>tew_min <span class="ot">&lt;-</span> <span class="fu">global</span>(tew6, <span class="st">"min"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> <span class="fu">min</span>()</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>tew_max <span class="ot">&lt;-</span> <span class="fu">global</span>(tew6, <span class="st">"max"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> <span class="fu">max</span>()</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>tew6_norm <span class="ot">&lt;-</span> (tew6 <span class="sc">-</span> tew_min) <span class="sc">/</span> (tew_max <span class="sc">-</span> tew_min)</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co">#check </span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="fu">global</span>(tew6_norm, range, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>project_raster <span class="ot">&lt;-</span> <span class="fu">project</span>(speed_layers, dem_final)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>speed_aligned <span class="ot">&lt;-</span> <span class="fu">crop</span>(project_raster, dem_final)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>speed_layers <span class="ot">&lt;-</span> <span class="fu">mask</span>(speed_aligned, dem_final)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># get tew</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>tew6 <span class="ot">&lt;-</span> <span class="fu">computeTEW</span>(sts, dem_final, pf, <span class="at">product =</span> <span class="st">"PixProfiles"</span>, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># change scale of tew (-1/1 --&gt; 0/1)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>tew_min <span class="ot">&lt;-</span> <span class="fu">global</span>(tew6, <span class="st">"min"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> <span class="fu">min</span>()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>tew_max <span class="ot">&lt;-</span> <span class="fu">global</span>(tew6, <span class="st">"max"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> <span class="fu">max</span>()</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>tew6_norm <span class="ot">&lt;-</span> (tew6 <span class="sc">-</span> tew_min) <span class="sc">/</span> (tew_max <span class="sc">-</span> tew_min)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#check </span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">global</span>(tew6_norm, range, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                              X1        X2
 CHIDO_TEW_33_Pix    0.2534612684 0.8422313
@@ -728,14 +740,19 @@ CHIDO_TEW_40.67_Pix 0.1001585852 0.9817562</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># hour</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>n_t <span class="ot">&lt;-</span> <span class="fu">nlyr</span>(speed_layers)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># integer layer by layer</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>wem <span class="ot">&lt;-</span> <span class="fu">app</span>(speed_layers <span class="sc">*</span> tew6_norm, sum, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> dt </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(wem) <span class="ot">&lt;-</span> <span class="st">"wem"</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wem, <span class="at">main =</span> <span class="st">"wem cumulé"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dt <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># hour</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>n_t <span class="ot">&lt;-</span> <span class="fu">nlyr</span>(speed_layers)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># integer layer by layer</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>wem <span class="ot">&lt;-</span> <span class="fu">app</span>(speed_layers <span class="sc">*</span> tew6_norm, sum, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> dt </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(wem) <span class="ot">&lt;-</span> <span class="st">"wem"</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wem, <span class="at">main =</span> <span class="st">"wem cumulé"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -747,8 +764,8 @@ CHIDO_TEW_40.67_Pix 0.1001585852 0.9817562</code></pre>
 <p>Pour chaque cellule, on additionne à chaque heure MSW × TEW. Une cellule avec un WEM élevé a reçu beaucoup de vent et est topographiquement exposée, de façon cumulée sur toute la période.</p>
 <p>On peut faire quelques statistiques descriptives sur ce modèle. Tout d’abord un petit résumé numérique.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>stats_globales <span class="ot">&lt;-</span> <span class="fu">global</span>(wem, <span class="fu">c</span>(<span class="st">"min"</span>, <span class="st">"max"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(stats_globales)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>stats_globales <span class="ot">&lt;-</span> <span class="fu">global</span>(wem, <span class="fu">c</span>(<span class="st">"min"</span>, <span class="st">"max"</span>, <span class="st">"mean"</span>, <span class="st">"sd"</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(stats_globales)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         min      max    mean       sd
 wem 166.0065 385.7545 312.522 28.02355</code></pre>
@@ -756,13 +773,13 @@ wem 166.0065 385.7545 312.522 28.02355</code></pre>
 </div>
 <p>On peut aussi faire un histogramme de distribution spatiale</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(wem,</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main   =</span> <span class="st">"Distribution spatiale du wem"</span>,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab   =</span> <span class="st">"WEM"</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab   =</span> <span class="st">"Fréquence"</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">col    =</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">border =</span> <span class="st">"white"</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">breaks =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(wem,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">main   =</span> <span class="st">"Distribution spatiale du wem"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab   =</span> <span class="st">"WEM"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab   =</span> <span class="st">"Fréquence"</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">col    =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">border =</span> <span class="st">"white"</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">breaks =</span> <span class="dv">50</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: [hist] a sample of 60% of the cells was used (of which 99% was NA)</code></pre>
 </div>
@@ -776,20 +793,26 @@ wem 166.0065 385.7545 312.522 28.02355</code></pre>
 </div>
 <p>On peut aussi voir la contribution de chaque couche.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># moyenne spatiale du produit MSW × TEW à chaque pas de temps</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>contrib_temporelle <span class="ot">&lt;-</span> <span class="fu">global</span>(speed_layers <span class="sc">*</span> tew6_norm, <span class="st">"mean"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>contrib_temporelle<span class="sc">$</span>pas <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(contrib_temporelle))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(contrib_temporelle)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"contribution_moyenne"</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(contrib_temporelle<span class="sc">$</span>pas,</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>     contrib_temporelle<span class="sc">$</span>contribution_moyenne,</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">type =</span> <span class="st">"l"</span>,</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">col  =</span> <span class="st">"steelblue"</span>,</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">lwd  =</span> <span class="fl">1.5</span>,</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Contribution moyenne par pas de temps"</span>,</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Pas de temps (h)"</span>,</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"MSW × TEW moyen"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># moyenne spatiale du produit MSW × TEW à chaque pas de temps</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>contrib_temporelle <span class="ot">&lt;-</span> <span class="fu">global</span>(speed_layers <span class="sc">*</span> tew6_norm, <span class="st">"mean"</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>contrib_temporelle<span class="sc">$</span>pas <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(contrib_temporelle))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(contrib_temporelle)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"contribution_moyenne"</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(contrib_temporelle<span class="sc">$</span>pas,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>     contrib_temporelle<span class="sc">$</span>contribution_moyenne,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">type =</span> <span class="st">"l"</span>,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">col  =</span> <span class="st">"steelblue"</span>,</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">lwd  =</span> <span class="fl">1.5</span>,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Contribution moyenne par pas de temps"</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Pas de temps (h)"</span>,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"MSW × TEW moyen"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -797,15 +820,15 @@ wem 166.0065 385.7545 312.522 28.02355</code></pre>
 </figure>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>top10 <span class="ot">&lt;-</span> contrib_temporelle <span class="sc">|&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(contribution_moyenne)) <span class="sc">|&gt;</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Top 10 des pas de temps les plus contributeurs :</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>top10 <span class="ot">&lt;-</span> contrib_temporelle <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">arrange</span>(<span class="fu">desc</span>(contribution_moyenne)) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Top 10 des pas de temps les plus contributeurs :</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Top 10 des pas de temps les plus contributeurs :</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top10)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(top10)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                  contribution_moyenne pas
 CHIDO_Speed_37.33             28.78438  14

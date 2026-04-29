@@ -1,0 +1,336 @@
+---
+title: 'Rapport hebdomadaire 16'
+author: "Alix Biton"
+date: "2026-04-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Semaine 15 (27/04 au 01/05)
+
+### Filtrer le jeu de données
+
+```{r loadStormR,include = FALSE, results='hide'}
+devtools::load_all("/home/abiton/Documents/StormR/")
+library(terra)
+library(cluster)
+
+library(ggplot2)
+library(tidyterra)
+library(patchwork)
+
+library(randomForest)
+```
+
+```{r prep dta, include = FALSE, warning = FALSE, message=FALSE, results='hide'}
+dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", sep = ",", header = TRUE)
+dtaFiltered <- dta[(dta["dec_ndvi"] > 0.7) & (dta["altitude"] >= 50),]
+scaledVar <- c("altitude","wem","pente","courbure","ang6","msw_max")
+dtaScaled <- dtaFiltered
+dtaScaled[scaledVar] <- lapply(dtaScaled[scaledVar], scale)
+
+for (v in scaledVar) {
+  dtaScaled[[v]] <- as.vector(dtaScaled[[v]])  # as.vector() supprime la structure matrix
+}
+
+set.seed(1234)
+train_id <- sample(nrow(dtaScaled), 0.7*nrow(dtaScaled))
+dta_train <- dtaScaled[train_id, ]
+dta_test <- dtaScaled[-train_id, ]
+
+#get cyclone
+dem  <- rast("/home/abiton/Documents/dem_data/dem_final.tif")
+
+#get cyclone informations (profiles)
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+#get the loi
+map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+#get chido
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+
+```
+
+## Définition du seuil de NDVI
+
+En filtrant les pixels avec un NDVI > 0.7 avant le cyclone et en enlevant ceux situés sur la côte à une altitude < 50 m, on obtient de bien meilleurs résultats dans nos modèle. Cependant ce seuil de NDVI pré-cyclonique est plutôt arbitraire. Pour tenter de trouver un seuil acceptable cohérent, on fait un kmeans (même si la distribution n'est pas bimodale). 
+
+```{r kmeans}
+# K-means avec k=2
+set.seed(42)
+km <- kmeans(dta$dec_ndvi, centers = 2)
+dta$cluster <- factor(km$cluster)
+
+# Voir les centroïdes 
+aggregate(dec_ndvi ~ cluster, data = dta, FUN = mean)
+(0.8305349 + 0.6461856) / 2
+# [1] 0.7383603
+
+#visualiser
+hist(dta$dec_ndvi,
+     breaks = 50,
+     col    = ifelse(
+       seq(min(dta$dec_ndvi), max(dta$dec_ndvi), length.out = 50) > 0.7383603,
+       "darkgreen", "salmon"
+     ),
+     main   = "Distribution du NDVI",
+     xlab   = "NDVI pré-cyclonique",
+     ylab   = "Fréquence",
+     border = "white")
+
+abline(v = 0.7383603, col = "red",    lwd = 2, lty = 2)
+abline(v = 0.70,      col = "orange", lwd = 2, lty = 2)
+
+legend("topleft",
+       legend = c("Frontière K-means (0.738)", "Seuil actuel (0.70)"),
+       col    = c("red", "orange"),
+       lwd    = 2,
+       lty    = 2,
+       bty    = "n")
+```
+
+Le seuil de 0.7 n'était finalement pas si mal. 
+
+
+## Modèle linéaire
+
+Le modèle linéaire utilisé pour faire les prédicitons est celui ci : 
+
+```{r model}
+
+m <- lm(delta_ndvi ~ msw_max * ang6 + altitude + courbure , data = dta_train)
+summary(m)
+
+par(mfrow=c(2,2))
+plot(m)
+
+```
+
+Les conditions du modèle sont respectées, surtout le plot *'Résidus vs Fitted'*. 
+L'homoscédasticité, la normalité des résidus et l'indépendance est respectée. 
+
+## Prédictions sur jeu de test
+
+On peut maintenant tester le modèle sur le jeu de test.
+
+```{r predict}
+
+pred_test <- predict(m, newdata = dta_test)
+dta_test$pred <- pred_test
+residuals_test <- dta_test$delta_ndvi - pred_test
+dta_test$residus <- dta_test$delta_ndvi - dta_test$pred
+
+
+rmse_test <- sqrt(mean(residuals_test^2))
+ss_res <- sum(residuals_test^2)
+ss_tot <- sum((dta_test$delta_ndvi - mean(dta_test$delta_ndvi))^2)
+r2_test <- 1 - ss_res / ss_tot
+
+cat("RMSE test :", round(rmse_test, 4), "\n")
+cat("R² test   :", round(r2_test, 4), "\n")
+
+
+# visualisation
+ggplot(dta_test, aes(x = pred, y = delta_ndvi)) +
+  geom_point(alpha = 0.2, size = 0.8) +
+  geom_abline(slope = 1, intercept = 0, color = "red", linewidth = 1) +
+  geom_smooth(method = "lm", color = "steelblue", se = FALSE) +
+  labs(title = "Prédictions m vs valeurs observées (test)",
+       x = "delta_ndvi prédit", y = "delta_ndvi observé") +
+  theme_minimal()
+
+
+ggplot(dta_test, aes(x = longitude, y = latitude, color = residus)) +
+  geom_point(size = 0.5) +
+  scale_color_gradient2(low = "darkblue", mid = "white", high = "darkred", midpoint = 0) +
+  labs(title = "Résidus spatiaux m") +
+  coord_equal() +
+  theme_minimal()
+
+
+```
+
+
+## Extrapolation à tout Mayotte
+
+Pour étendre notre modèle à tout Mayotte et essayer de prédire les dommages de Chido sur l'entièreté de l'île, il faut préparer les varibales explicatives : *msw_max, altitude, tew, courbure*. Il faut aussif aire attention à la normalisation des données qui avaient été faite dans le jeu de données de base. 
+
+```{r mayotte dta, message = FALSE, results='hide'}
+
+# altitude
+demMayotte <- rast("/home/abiton/Documents/dem_data/dem_mayotte.tif")
+mask_land <- ifel(demMayotte > 0, 1, NA)
+demMayotte <- demMayotte * mask_land
+
+# msw
+speed_layers <- pf[[grep("CHIDO_Speed", names(pf))]]
+max_speed_raster <- max(speed_layers, na.rm = TRUE)
+
+max_speed_raster <- project(max_speed_raster, demMayotte)
+vmax_aligned <- crop(max_speed_raster, demMayotte)
+mswMayotte <- mask(vmax_aligned, demMayotte)
+
+# tew6 
+tew6Mayotte <- computeTEW(sts, demMayotte, pf, product = "Summary", angle = 6, verbose = 0)
+
+# courbure
+penteM <- terrain(demMayotte, v= "slope")
+curvMayotte <- terrain(penteM, v = "slope")
+
+# stack 
+stack_mayotte <- c(mswMayotte, tew6Mayotte, demMayotte, curvMayotte, penteM)
+names(stack_mayotte) <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+# convertir chaque couche en numeric
+stack_mayotte[["msw_max"]]  <- as.numeric(stack_mayotte[["msw_max"]])
+stack_mayotte[["ang6"]]     <- as.numeric(stack_mayotte[["ang6"]])
+stack_mayotte[["altitude"]] <- as.numeric(stack_mayotte[["altitude"]])
+stack_mayotte[["courbure"]] <- as.numeric(stack_mayotte[["courbure"]])
+stack_mayotte[["pente"]] <- as.numeric(stack_mayotte[["pente"]])
+
+```
+
+```{r predictM}
+cols <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+params_scale <- lapply(cols, function(v) {
+  list(mean = mean(dta[[v]], na.rm = TRUE),
+       sd   = sd(dta[[v]],   na.rm = TRUE))
+})
+names(params_scale) <- cols
+
+# normaliser
+stack_scaled <- stack_mayotte
+for (v in cols) {
+  stack_scaled[[v]] <- (stack_mayotte[[v]] - params_scale[[v]]$mean) / params_scale[[v]]$sd
+}
+# prediction
+pred_mayotte <- predict(stack_scaled, m, na.rm = TRUE)
+
+```
+
+```{r plot pred, fig.align='center'}
+
+ggplot() +
+  geom_spatraster(data = pred_mayotte) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Prédit sur Mayotte (m)") +
+  coord_sf() +
+  theme_minimal()
+
+ggplot(dta_test, aes(x = longitude, y = latitude, color = delta_ndvi)) +
+  geom_point(size = 0.5) +
+  scale_color_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Observé (jeu de test)") +
+  coord_equal() +
+  theme_minimal()
+
+
+# superposé
+ggplot() +
+  geom_spatraster(data = pred_mayotte) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI prédit"
+  ) +
+  geom_point(data = dta_test, 
+             aes(x = longitude, y = latitude, color = delta_ndvi),
+             size = 0.8) +
+  scale_color_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    name     = "Delta NDVI observé"
+  ) +
+  labs(title = "Delta NDVI prédit (raster) vs observé (points)") +
+  coord_sf() +
+  theme_minimal()
+  
+
+```
+
+## Random Forest 
+
+```{r RF}
+rf_model <- randomForest(
+  delta_ndvi ~ msw_max + ang6 + altitude + courbure, 
+  data = dta_train,
+  importance = TRUE, 
+  ntree = 500
+)
+
+# importance des variables
+print(rf_model)
+varImpPlot(rf_model, main = "Importance des variables (RF)")
+
+# prediction
+pred_rf_test <- predict(rf_model, newdata = dta_test)
+dta_test$pred_rf <- pred_rf_test
+
+# métriques
+rmse_rf <- sqrt(mean((dta_test$delta_ndvi - pred_rf_test)^2))
+r2_rf <- 1 - (sum((dta_test$delta_ndvi - pred_rf_test)^2) / 
+                sum((dta_test$delta_ndvi - mean(dta_test$delta_ndvi))^2))
+
+cat("RF - RMSE test :", round(rmse_rf, 4), "\n")
+cat("RF - R² test    :", round(r2_rf, 4), "\n")
+
+# extrapolation
+pred_mayotte_rf <- predict(stack_scaled, rf_model, na.rm = TRUE)
+
+# visualisation
+
+ggplot() +
+  geom_spatraster(data = pred_mayotte_rf) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Prédit sur Mayotte (RF)") +
+  coord_sf() +
+  theme_minimal()
+
+```
+
+Random Forest permet plus de nuances dans les prédictions du modèles, on peu notamment voir une perte de végétation moins importante dans le sud de l'île, ce qui est plus cohérent avec la trajectoire de Chido et ce qu'on peut voir visuellement. 
