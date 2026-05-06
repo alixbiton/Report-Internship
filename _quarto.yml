@@ -63,6 +63,10 @@ website:
               text: "Semaine 15"
             - href: hebdos/hebdo_16.Rmd
               text: "Semaine 16"
+          - section: "Mai"
+            contents:
+            - href: hebdos/hebdo_17.Rmd
+              text: "Semaine 17"
       
 format:
   html:

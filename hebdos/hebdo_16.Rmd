@@ -70,9 +70,9 @@ pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
 
 ```
 
-## Définition du seuil de NDVI
+### Définition du seuil de NDVI
 
-En filtrant les pixels avec un NDVI > 0.7 avant le cyclone et en enlevant ceux situés sur la côte à une altitude < 50 m, on obtient de bien meilleurs résultats dans nos modèle. Cependant ce seuil de NDVI pré-cyclonique est plutôt arbitraire. Pour tenter de trouver un seuil acceptable cohérent, on fait un kmeans (même si la distribution n'est pas bimodale). 
+En filtrant les pixels avec un NDVI \> 0.7 avant le cyclone et en enlevant ceux situés sur la côte à une altitude \< 50 m, on obtient de bien meilleurs résultats dans nos modèle. Cependant ce seuil de NDVI pré-cyclonique est plutôt arbitraire. Pour tenter de trouver un seuil acceptable cohérent, on fait un kmeans (même si la distribution n'est pas bimodale).
 
 ```{r kmeans}
 # K-means avec k=2
@@ -108,12 +108,11 @@ legend("topleft",
        bty    = "n")
 ```
 
-Le seuil de 0.7 n'était finalement pas si mal. 
+Le seuil de 0.7 n'était finalement pas si mal.
 
+### Modèle linéaire
 
-## Modèle linéaire
-
-Le modèle linéaire utilisé pour faire les prédicitons est celui ci : 
+Le modèle linéaire utilisé pour faire les prédicitons est celui ci :
 
 ```{r model}
 
@@ -125,10 +124,9 @@ plot(m)
 
 ```
 
-Les conditions du modèle sont respectées, surtout le plot *'Résidus vs Fitted'*. 
-L'homoscédasticité, la normalité des résidus et l'indépendance est respectée. 
+Les conditions du modèle sont respectées, surtout le plot *'Résidus vs Fitted'*. L'homoscédasticité, la normalité des résidus et l'indépendance est respectée.
 
-## Prédictions sur jeu de test
+### Prédictions sur jeu de test
 
 On peut maintenant tester le modèle sur le jeu de test.
 
@@ -169,10 +167,9 @@ ggplot(dta_test, aes(x = longitude, y = latitude, color = residus)) +
 
 ```
 
+### Extrapolation à tout Mayotte
 
-## Extrapolation à tout Mayotte
-
-Pour étendre notre modèle à tout Mayotte et essayer de prédire les dommages de Chido sur l'entièreté de l'île, il faut préparer les varibales explicatives : *msw_max, altitude, tew, courbure*. Il faut aussif aire attention à la normalisation des données qui avaient été faite dans le jeu de données de base. 
+Pour étendre notre modèle à tout Mayotte et essayer de prédire les dommages de Chido sur l'entièreté de l'île, il faut préparer les varibales explicatives : *msw_max, altitude, tew, courbure*. Il faut aussif aire attention à la normalisation des données qui avaient été faite dans le jeu de données de base.
 
 ```{r mayotte dta, message = FALSE, results='hide'}
 
@@ -286,7 +283,7 @@ ggplot() +
 
 ```
 
-## Random Forest 
+### Random Forest
 
 ```{r RF}
 rf_model <- randomForest(
@@ -299,7 +296,27 @@ rf_model <- randomForest(
 # importance des variables
 print(rf_model)
 varImpPlot(rf_model, main = "Importance des variables (RF)")
+```
 
+##### Interprétation
+
+**%IncMSE (Mean Square Error)** \
+Pour chaque variable, l'algorithme permute aléatoirement ses valeurs et regarde à quel point l'erreur du modèle augmente. Plus la valeur sur l'axe X est élevée, plus elle est importante. Si on supprime MSW, l'erreur du modèle bondit et CURV a un impact très faible sur la précision globale. 
+C'est l'indice le plus fiable du modèle. \
+
+Ici, *MSW* domine sur les deux tableaux donc c'est le principal prédicteur. *CURV* apporte peu d'informations utile au modèle, si il y a une simplification à faire ce sera la première à supprimer. 
+
+**IncNodePurity (Pureté des noeuds)** \
+Il calcule l'amélioration totale de la réductiond e l'erreur que chaque variable apporte à chaque fois qu'elle est utilisée pour diviser un groupe de données. Les variables en haut permettent de séparer les données le plus proprement possible. L'altitude semble plus efficace pour "diviser" les données que pour garantir la précision finale par rapport à *TEW* \
+
+*TEW* contribue plus à la réduction de l'erreur globale (valeur prédictive plus élevée) tandis qu'*ALT* est plus souventutilisée pour créer des divisions nettes dans les arbres (segmente mieux) \
+
+**Différences avec LM** \
+Le modèle linéaire suppose que l'effet de l'altitude est constant c'est-à-dire que chaque mètre supplémentaire diminue la différence de NDVI de la même manière partout. 
+Le RandomForest cherche les interactions locales donc s'il y a des seuils ou si l'altitude interagit avec d'autres variables alors le randomForest peut trouver que d'autres vraiables sont plus utiles pour affiner point par point. L'interaction *MSW x TEW* divise l'influence du *TEW* entre son effet propre et son effet combiné. *TEW* et *MSW* ont une finesse de prédiction locale supérieure comme on peut le voir dans le graphique de gauche. 
+
+
+```{r predRF}
 # prediction
 pred_rf_test <- predict(rf_model, newdata = dta_test)
 dta_test$pred_rf <- pred_rf_test
@@ -333,4 +350,4 @@ ggplot() +
 
 ```
 
-Random Forest permet plus de nuances dans les prédictions du modèles, on peu notamment voir une perte de végétation moins importante dans le sud de l'île, ce qui est plus cohérent avec la trajectoire de Chido et ce qu'on peut voir visuellement. 
+Random Forest permet plus de nuances dans les prédictions du modèles, on peu notamment voir une perte de végétation moins importante dans le sud de l'île, ce qui est plus cohérent avec la trajectoire de Chido et ce qu'on peut voir visuellement.

@@ -325,6 +325,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
       </ul>
   </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Mai</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../hebdos/hebdo_17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semaine 17</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
       </ul>
   </li>
     </ul>
@@ -340,12 +357,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#semaine-15-2704-au-0105" id="toc-semaine-15-2704-au-0105" class="nav-link active" data-scroll-target="#semaine-15-2704-au-0105">Semaine 15 (27/04 au 01/05)</a>
   <ul class="collapse">
   <li><a href="#filtrer-le-jeu-de-données" id="toc-filtrer-le-jeu-de-données" class="nav-link" data-scroll-target="#filtrer-le-jeu-de-données">Filtrer le jeu de données</a></li>
-  </ul></li>
   <li><a href="#définition-du-seuil-de-ndvi" id="toc-définition-du-seuil-de-ndvi" class="nav-link" data-scroll-target="#définition-du-seuil-de-ndvi">Définition du seuil de NDVI</a></li>
   <li><a href="#modèle-linéaire" id="toc-modèle-linéaire" class="nav-link" data-scroll-target="#modèle-linéaire">Modèle linéaire</a></li>
   <li><a href="#prédictions-sur-jeu-de-test" id="toc-prédictions-sur-jeu-de-test" class="nav-link" data-scroll-target="#prédictions-sur-jeu-de-test">Prédictions sur jeu de test</a></li>
   <li><a href="#extrapolation-à-tout-mayotte" id="toc-extrapolation-à-tout-mayotte" class="nav-link" data-scroll-target="#extrapolation-à-tout-mayotte">Extrapolation à tout Mayotte</a></li>
   <li><a href="#random-forest" id="toc-random-forest" class="nav-link" data-scroll-target="#random-forest">Random Forest</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -388,9 +405,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="filtrer-le-jeu-de-données" class="level3">
 <h3 class="anchored" data-anchor-id="filtrer-le-jeu-de-données">Filtrer le jeu de données</h3>
 </section>
-</section>
-<section id="définition-du-seuil-de-ndvi" class="level2">
-<h2 class="anchored" data-anchor-id="définition-du-seuil-de-ndvi">Définition du seuil de NDVI</h2>
+<section id="définition-du-seuil-de-ndvi" class="level3">
+<h3 class="anchored" data-anchor-id="définition-du-seuil-de-ndvi">Définition du seuil de NDVI</h3>
 <p>En filtrant les pixels avec un NDVI &gt; 0.7 avant le cyclone et en enlevant ceux situés sur la côte à une altitude &lt; 50 m, on obtient de bien meilleurs résultats dans nos modèle. Cependant ce seuil de NDVI pré-cyclonique est plutôt arbitraire. Pour tenter de trouver un seuil acceptable cohérent, on fait un kmeans (même si la distribution n’est pas bimodale).</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># K-means avec k=2</span></span>
@@ -442,8 +458,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Le seuil de 0.7 n’était finalement pas si mal.</p>
 </section>
-<section id="modèle-linéaire" class="level2">
-<h2 class="anchored" data-anchor-id="modèle-linéaire">Modèle linéaire</h2>
+<section id="modèle-linéaire" class="level3">
+<h3 class="anchored" data-anchor-id="modèle-linéaire">Modèle linéaire</h3>
 <p>Le modèle linéaire utilisé pour faire les prédicitons est celui ci :</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">lm</span>(delta_ndvi <span class="sc">~</span> msw_max <span class="sc">*</span> ang6 <span class="sc">+</span> altitude <span class="sc">+</span> courbure , <span class="at">data =</span> dta_train)</span>
@@ -485,8 +501,8 @@ F-statistic:  2666 on 5 and 8779 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 <p>Les conditions du modèle sont respectées, surtout le plot <em>‘Résidus vs Fitted’</em>. L’homoscédasticité, la normalité des résidus et l’indépendance est respectée.</p>
 </section>
-<section id="prédictions-sur-jeu-de-test" class="level2">
-<h2 class="anchored" data-anchor-id="prédictions-sur-jeu-de-test">Prédictions sur jeu de test</h2>
+<section id="prédictions-sur-jeu-de-test" class="level3">
+<h3 class="anchored" data-anchor-id="prédictions-sur-jeu-de-test">Prédictions sur jeu de test</h3>
 <p>On peut maintenant tester le modèle sur le jeu de test.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>pred_test <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> dta_test)</span>
@@ -541,8 +557,8 @@ F-statistic:  2666 on 5 and 8779 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </section>
-<section id="extrapolation-à-tout-mayotte" class="level2">
-<h2 class="anchored" data-anchor-id="extrapolation-à-tout-mayotte">Extrapolation à tout Mayotte</h2>
+<section id="extrapolation-à-tout-mayotte" class="level3">
+<h3 class="anchored" data-anchor-id="extrapolation-à-tout-mayotte">Extrapolation à tout Mayotte</h3>
 <p>Pour étendre notre modèle à tout Mayotte et essayer de prédire les dommages de Chido sur l’entièreté de l’île, il faut préparer les varibales explicatives : <em>msw_max, altitude, tew, courbure</em>. Il faut aussif aire attention à la normalisation des données qui avaient été faite dans le jeu de données de base.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># altitude</span></span>
@@ -672,8 +688,8 @@ F-statistic:  2666 on 5 and 8779 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </section>
-<section id="random-forest" class="level2">
-<h2 class="anchored" data-anchor-id="random-forest">Random Forest</h2>
+<section id="random-forest" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest">Random Forest</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  delta_ndvi <span class="sc">~</span> msw_max <span class="sc">+</span> ang6 <span class="sc">+</span> altitude <span class="sc">+</span> courbure, </span>
@@ -703,6 +719,21 @@ No. of variables tried at each split: 1
 </figure>
 </div>
 </div>
+</div>
+<section id="interprétation" class="level5">
+<h5 class="anchored" data-anchor-id="interprétation">Interprétation</h5>
+<p><strong>%IncMSE (Mean Square Error)</strong><br>
+Pour chaque variable, l’algorithme permute aléatoirement ses valeurs et regarde à quel point l’erreur du modèle augmente. Plus la valeur sur l’axe X est élevée, plus elle est importante. Si on supprime MSW, l’erreur du modèle bondit et CURV a un impact très faible sur la précision globale. C’est l’indice le plus fiable du modèle.<br>
+</p>
+<p>Ici, <em>MSW</em> domine sur les deux tableaux donc c’est le principal prédicteur. <em>CURV</em> apporte peu d’informations utile au modèle, si il y a une simplification à faire ce sera la première à supprimer.</p>
+<p><strong>IncNodePurity (Pureté des noeuds)</strong><br>
+Il calcule l’amélioration totale de la réductiond e l’erreur que chaque variable apporte à chaque fois qu’elle est utilisée pour diviser un groupe de données. Les variables en haut permettent de séparer les données le plus proprement possible. L’altitude semble plus efficace pour “diviser” les données que pour garantir la précision finale par rapport à <em>TEW</em><br>
+</p>
+<p><em>TEW</em> contribue plus à la réduction de l’erreur globale (valeur prédictive plus élevée) tandis qu’<em>ALT</em> est plus souventutilisée pour créer des divisions nettes dans les arbres (segmente mieux)<br>
+</p>
+<p><strong>Différences avec LM</strong><br>
+Le modèle linéaire suppose que l’effet de l’altitude est constant c’est-à-dire que chaque mètre supplémentaire diminue la différence de NDVI de la même manière partout. Le RandomForest cherche les interactions locales donc s’il y a des seuils ou si l’altitude interagit avec d’autres variables alors le randomForest peut trouver que d’autres vraiables sont plus utiles pour affiner point par point. L’interaction <em>MSW x TEW</em> divise l’influence du <em>TEW</em> entre son effet propre et son effet combiné. <em>TEW</em> et <em>MSW</em> ont une finesse de prédiction locale supérieure comme on peut le voir dans le graphique de gauche.</p>
+<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prediction</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>pred_rf_test <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_model, <span class="at">newdata =</span> dta_test)</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>dta_test<span class="sc">$</span>pred_rf <span class="ot">&lt;-</span> pred_rf_test</span>
@@ -744,7 +775,7 @@ No. of variables tried at each split: 1
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="hebdo_16_files/figure-html/RF-2.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="hebdo_16_files/figure-html/predRF-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -752,6 +783,8 @@ No. of variables tried at each split: 1
 <p>Random Forest permet plus de nuances dans les prédictions du modèles, on peu notamment voir une perte de végétation moins importante dans le sud de l’île, ce qui est plus cohérent avec la trajectoire de Chido et ce qu’on peut voir visuellement.</p>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->
