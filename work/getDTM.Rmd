@@ -1,0 +1,44 @@
+---
+title: "Digital Terrain Model"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Login OpenEO
+
+OpenEO is an R package used to obtain Earth Observation data. Connecting to the service is required to access this data, meaning you will need a Copernicus account. Here is the documentation link: <https://documentation.dataspace.copernicus.eu/APIs/openEO/R_Client/R.html>
+
+```{r connection, eval=FALSE}
+library(openeo)
+# connect to the backend and authenticate
+connection = connect(host = "https://openeofed.dataspace.copernicus.eu")
+login()
+
+# get the process collection to use the predefined processes of the back-end
+p = processes()
+```
+
+##Copernicus DEM30
+
+To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from : <http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000>
+
+```{r data, eval=FALSE}
+data = p$load_collection(id = 'COPERNICUS_30',
+                         spatial_extent = list(west=44.98, 
+                                               south=-13.01,
+                                               east=45.30,
+                                               north=-12.61),
+                         bands = c("DEM"))
+```
+
+Finally, the data can be exported to the preferred format and saved to the local drive.
+
+```{r result, eval = FALSE}
+result = p$save_result(data = data, format = "GTiff")
+
+# save the tif file
+compute_result(graph = result, output_file = "/home/abiton/Documents/dem_data/dem_mayotte.tif")
+```

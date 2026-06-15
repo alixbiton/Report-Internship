@@ -1,0 +1,140 @@
+---
+title: "Vegetation Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Login OpenEO
+
+OpenEO is an R package used to obtain Earth Observation data. Connecting to the service is required to access this data, meaning you will need a Copernicus account. Here is the documentation link: <https://documentation.dataspace.copernicus.eu/APIs/openEO/R_Client/R.html>
+
+```{r connection, eval=FALSE}
+library(openeo)
+# connect to the backend and authenticate
+connection = connect(host = "https://openeofed.dataspace.copernicus.eu")
+login()
+
+# get the process collection to use the predefined processes of the back-end
+p = processes()
+```
+
+## Extract vegetation index data 
+
+To retrieve vegetation data, Sentinel spectral bands can be accessed via the OpenEO package to calculate a vegetation index. A mosaic reconstruction is then performed using raw imagery, allowing you to assess the available coverage over your LOI while accounting for cloud cover.
+
+### Cloud coverage treatment
+
+To handle `cloud cover` using the OpenEO package, the cloud_cover option can be used to filter for images with less than a specific cloud cover percentage (set to 30% here). Additionally, the Scene Classification Layer (SCL) band (<https://brazil-data-cube.github.io/specifications/bands/SCL.html>) can be utilized to classify all pixels into several categories:
+
+| Class                    | Pixel value     |
+|--------------------------|-----------------|
+| No Data                  | 0               |
+| Satured or Defective     | 1               |
+| Dark Area Pixels         | 2               |
+| Cloud Shadows            | 3               |
+| Vegetation               | 4               |
+| Not Vegetated            | 5               |
+| Water                    | 6               |
+| Unclassified             | 7               |
+| Cloud Medium Probability | 8               |
+| Cloud High Probability   | 9               |
+| Thin Cirrus              | 10              |
+| Snow                     | 11              |
+
+When utilizing the SCL band, it is recommended to retain only pixels 4, 5, 6, and 7. 
+
+### Function to extract data
+
+The following function is used to extract the NDVI data:"
+
+```{r function,warning = FALSE, results = FALSE, message=FALSE}
+bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61) #loi
+folder_out = "../path_file" #local folder to stock
+
+
+mosaicVegetation = function(start_date, end_date, filename) {
+  
+  data = p$load_collection(
+    id = "SENTINEL2_L2A",
+    spatial_extent = bbox,
+    temporal_extent = list(start_date, end_date),
+    bands = c("B04", "B08", "SCL")
+    #properties = list("eo:cloud_cover" = function(x) x <= 30) #to use or no depending on the treatment
+  )
+  
+  # create mask
+   cloud_mask = p$reduce_dimension(
+     data = data,
+     dimension = "bands",
+     reducer = function(data, context) {
+       scl = data[3] 
+  
+       # only safe classes 
+       is_safe = p$or(
+         p$eq(scl, 4), # vegetated
+         p$or(
+           p$eq(scl, 5), # naked soil
+           p$or(p$eq(scl, 6), p$eq(scl, 7))# water or unclassified
+         )
+       )
+
+       return(p$not(is_safe))
+     }
+   )
+     # computing ndvi
+  data_only = p$filter_bands(data, bands = c("B04", "B08"))
+  data_cleaned = p$mask(data = data_only, mask = cloud_mask)
+  
+  ndvi_cube = p$ndvi(data = data_cleaned, nir = "B08", red = "B04") #can be replace by the formula
+    #manually compute ndvi
+  #spectral_reduce = p$reduce_dimension(data = data, dimension = "bands",reducer = function(data,context) {
+  #  b8 = data[1] #nir
+   # b4 = data[2] #red
+    
+#    return((b8-b4)/(b8+b4))
+ # })
+  
+  # save data
+  result = p$save_result(data = ndvi_cube, format = "NetCDF")
+  compute_result(graph = result, output_file = file.path(folder_out, filename))
+}
+
+```
+ 
+For example, using a defined LOI, a mosaic reconstruction can be performed for two distinct periods: before and after the cyclone of interest (here, Chido 12/2024).
+
+```{r beforeAfter, eval = FALSE}
+# for the cyclone chido, need to find dates without to much clouds
+
+# before chido
+mosaicVegetation("2024-10-22", "2024-12-10", "ndvi_before_chido.tif")
+
+# after chido
+mosaicVegetation("2025-01-01", "2025-01-31", "ndvi_after_chido.tif")
+```
+
+### Output
+
+Here, the NDVI mosaic reconstruction for Mayotte across both periods is presented
+```{r mosaicsperso, echo=FALSE}
+library(slickR)
+
+mes_photos <- c("../images/sentinel/decemberNdvi.png","../images/sentinel/januaryNdvi.png")
+
+slickR(obj = mes_photos, height = 400, width = "100%") + 
+    settings(
+    dots = TRUE, 
+    autoplay = TRUE, 
+    autoplaySpeed = 3000,
+    slidesToShow = 2,   
+    slidesToScroll = 1   
+  )
+
+```
+
+NB : The Sentinel-2 mission's Quarterly Mosaics provide a clear, cloud-free overview of the area. Over a three-month period, the highest-quality pixels are retrieved to generate the best possible representation of the vegetation. However, in the context of a cyclone, a three-month timeframe may not accurately capture the state of the vegetation immediately before and after the event, as vegetation can recover or change rapidly in the aftermath.
+
+The output of this function allows for the recreation of a product similar to these Quarterly Mosaics. It should be noted that full coverage of the LOI (Mayotte) may not always be available; blank (white) areas indicate that the region was entirely obscured by cloud cover throughout the selected period.
