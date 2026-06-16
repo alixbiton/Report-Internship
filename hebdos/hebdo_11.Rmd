@@ -66,7 +66,7 @@ mean(dta$msw_max)
 
 ```
 
-Cela suggère que la vitesse maximale moyenne du cyclone (MSW) sur la zone est d'environ 53.02 m/s.  La moyenne des vitesses maximale est de 52.69 m/s donc globalement, l'exposition a accentué l'impact du cyclone sur la zone. 
+Cela suggère que la vitesse maximale moyenne du cyclone (MSW) sur la zone est d'environ 53.02 m/s. La moyenne des vitesses maximale est de 52.69 m/s donc globalement, l'exposition a accentué l'impact du cyclone sur la zone.
 
 ```{r models}
 # model kurt mclaren 
@@ -75,10 +75,9 @@ summary(mkurt)
 ```
 
 -   effet de la vitesse seule : À chaque fois que le vent augmente de 1 m/s , le NDVI diminue de 0.03 unités.
--   effet de l'exposition topo seul : pas trop interprétable car considère un vent nul ce qui n'arrive pas lors du cyclone. 
+-   effet de l'exposition topo seul : pas trop interprétable car considère un vent nul ce qui n'arrive pas lors du cyclone.
 -   effet de l'interaction : L'effet destructeur du vent est accentué sur les versants exposés. Sur un versant face au vent (ang6 = 1), la dégradation du NDVI n'est plus de −0.030, mais elle s'additionne avec l'interaction : −0.030+(−0.026)=−0.056 donc à vitesse de vent égale, la perte de végétation est deux fois plus forte sur un versant exposé que sur un terrain plat.
 
 ### Zones d'études possibles ?
 
 Il faut que les zones d'études soient une zone forestière avec une différence de NDVI marquée c'est-à-dire significative une exposition topographique plutôt marquée (altitude élevée, plus que pour Mbouzi).
-

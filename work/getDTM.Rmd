@@ -40,5 +40,5 @@ Finally, the data can be exported to the preferred format and saved to the local
 result = p$save_result(data = data, format = "GTiff")
 
 # save the tif file
-compute_result(graph = result, output_file = "/home/abiton/Documents/dem_data/dem_mayotte.tif")
+compute_result(graph = result, output_file = "../filepath/dtm.tif")
 ```
