@@ -27,12 +27,11 @@ Les cartes de différences de NDVI sont disponible dans le fichier **images brut
 
 -   **Différences même période** : il faut que la différence soit la plus faible possible. Si de trop grosses différences sont détectées, cela signifie que la reconstruction contient trop de variabilité et ne représente pas bien la végétation de décembre ou janvier.
 
-  ![Différences entre layers de décembre](../images/differencesbefore.png) 
-  ![Différences entre layers de janvier](../images/differencesafter.png)
+![Différences entre layers de décembre](../images/differencesbefore.png) ![Différences entre layers de janvier](../images/differencesafter.png)
 
 -   **Différences entre périodes** : il faut que la différence soit significative pour montrer, avant même d'étudier l'impact de Chido, qu'il y a eu un changement de végétation entre décembre 2024 et janvier 2025.
-  
-  ![Différences entre décembre et janvier](../images/differencetoto.png)
+
+![Différences entre décembre et janvier](../images/differencetoto.png)
 
 ### Zones d'études
 

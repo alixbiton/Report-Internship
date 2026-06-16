@@ -271,13 +271,17 @@ pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
 
 ```{r tew}
 
-tew6 <- computeTEW(sts, dem, pf, product = "Summary", angle = 6)
+tew6 <- computeTEW(pf, sts, dem, product = "TEWIntegrated", verbose = 0)
 
 rNord   <- crop(tew6, empriseNord)
 rSud    <- crop(tew6, empriseSud)
 rMbouzi <- crop(tew6, empriseMbouzi)
 
-plotTEW(sts,dem,tew6, dynamicPlot = TRUE)
+altNord   <- crop(dem, empriseNord)
+altSud    <- crop(dem, empriseSud)
+altMbouzi <- crop(dem, empriseMbouzi)
+
+plotTEW(sts,tew6, dem, dynamicPlot = TRUE)
 ```
 
 #### Nord de Mayotte
@@ -285,7 +289,7 @@ plotTEW(sts,dem,tew6, dynamicPlot = TRUE)
 Voici la zone du Nord de Mayotte :
 
 ```{r Nord}
-plotTEW(sts, dem, rNord,   main = "Nord")
+plotTEW(sts, rasterProduct = rNord, dtm = altNord,   main = "Nord")
 ```
 
 #### Sud de Mayotte
@@ -293,11 +297,11 @@ plotTEW(sts, dem, rNord,   main = "Nord")
 Voici la zone du Sud de Mayotte :
 
 ```{r Sud}
-plotTEW(sts, dem, rSud, main = "Sud")
+plotTEW(sts, rasterProduct = rSud, dtm = altSud, main = "Sud")
 ```
 
 #### Ilot Mbouzi
 
 ```{r Mbouzi}
-plotTEW(sts, dem, rMbouzi, main = "Mbouzi")
+plotTEW(sts = sts, rasterProduct = rMbouzi, dtm = altMbouzi,  main = "Mbouzi")
 ```

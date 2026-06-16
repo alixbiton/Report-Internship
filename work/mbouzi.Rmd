@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ## Chissouia Mbouzi
+
 ### Présentation
 
 L'îlot Chissouia Mbouzi est une réserve naturelle de 82 hectares de terres avec un sommet a 153m d'altitude donc un relief visible. Il y a 11 hectares de forêt sèche primaire.
@@ -27,8 +28,7 @@ settings(
 )
 ```
 
-Comme on peut le voir visuellement sur ces premières cartes, les dégâts observés apparus entre décembre 2024 et janvier 2025 sont très visibles sur les zones exposées au vent. 
-Ici l'image "Exposition topographique au vent de Mbouzi" recense l'exposition topographique de l'ilôt lorsque la vitesse était maximale en chaque point. On peut dire qu'en chaque point, on a le moment le plus vulnérable. 
+Comme on peut le voir visuellement sur ces premières cartes, les dégâts observés apparus entre décembre 2024 et janvier 2025 sont très visibles sur les zones exposées au vent. Ici l'image "Exposition topographique au vent de Mbouzi" recense l'exposition topographique de l'ilôt lorsque la vitesse était maximale en chaque point. On peut dire qu'en chaque point, on a le moment le plus vulnérable.
 
 ### Premiers tests
 
@@ -63,7 +63,7 @@ v_diff <- values(mask(diff_ndvi, common_mask, maskvalue=0), na.rm = TRUE)
 dtaMbouzi <- read.csv("/home/abiton/Documents/scriptR tests/dataMbouzi.csv")
 ```
 
-Avant de commencer les statistiques, il faut faire des statistiques basiques afin de vérifier quantitativement si les différences sont significatives. 
+Avant de commencer les statistiques, il faut faire des statistiques basiques afin de vérifier quantitativement si les différences sont significatives.
 
 **Pour rappel:** les valeurs négatives correspondent à une perte de végétation et les valeurs positives correspondent une végétalisation de la zone (possibilité de trouées attention)
 
@@ -100,4 +100,4 @@ abline(lm(perte_ndvi ~ topoexp, data = dtaMbouzi), col = "orange", lwd = 2, lty 
 
 ```
 
-D'après ces tests, on peut dire qu'il y a une différence significative entre le changement de NDVI et l'exposition topographique de la zone de Mbouzi. 
+D'après ces tests, on peut dire qu'il y a une différence significative entre le changement de NDVI et l'exposition topographique de la zone de Mbouzi.

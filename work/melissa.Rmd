@@ -93,13 +93,12 @@ Thanks to the package openEO and a connection to copernicus, we can extract the 
 
 I don't know why there is a whit strip in the middle of the island, but it's during the extraction of dem. Maybe it's too big, problem to solve...
 
-
 ![](../images/summarymelissa.png)
 
- This image show the result of the integrated product **Summary** of the `computeExposure` function I've been developing for my internship. This function compute, for each point of the MNT, the topographic exposure to wind when there was the maximum speed wind. 
- 
- It's searching the maximum wind speed for each point and get the associated direction to compute the topographic exposure to wind. We can say that it links the vulnerability of the terrain (exposure) to the precise moment when the danger is greatest (maximum speed) for each point on the map.
- 
- We can also use this function with a `threshold`. Here for example I ran the function with a 60m/s threshold which means that only the area of the island who were exposed to winds greater than 60m/s were computed. 
- 
- ![](../images/summary60mel.png)
+This image show the result of the integrated product **Integrated** of the `computeExposure` function I've been developing for my internship. This function compute, for each point of the MNT, the topographic exposure to wind when there was the maximum speed wind.
+
+It's searching the maximum wind speed for each point and get the associated direction to compute the topographic exposure to wind. We can say that it links the vulnerability of the terrain (exposure) to the precise moment when the danger is greatest (maximum speed) for each point on the map.
+
+We can also use this function with a `threshold`. Here for example I ran the function with a 60m/s threshold which means that only the area of the island who were exposed to winds greater than 60m/s were computed.
+
+![](../images/summary60mel.png)

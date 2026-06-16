@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Ce document recense des images brutes de NDVI pour se rendre compte de l'emprise disponible sur l'île de Mayotte et de la meilleure manière de traiter les nuages ainsi que les images. Par la suite, ce fichier ira dans la partie Données du site.
 
-Pour traiter les nuages par le package OpenEO, il existel'option `cloud_cover` qui trie les images ayant moins d'un certain pourcentage de couverture nuageuse (ici 30%). Il existe aussi la bande SCL (<https://brazil-data-cube.github.io/specifications/bands/SCL.html>) qui classe tous les pixels en plusieurs catégories :
+Pour traiter les nuages par le package OpenEO, il existe l'option `cloud_cover` qui trie les images ayant moins d'un certain pourcentage de couverture nuageuse (ici 30%). Il existe aussi la bande SCL (<https://brazil-data-cube.github.io/specifications/bands/SCL.html>) qui classe tous les pixels en plusieurs catégories :
 
 | Classe                   | Valeur de pixel |
 |--------------------------|-----------------|

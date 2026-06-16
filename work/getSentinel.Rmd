@@ -21,7 +21,7 @@ login()
 p = processes()
 ```
 
-## Extract vegetation index data 
+## Extract vegetation index data
 
 To retrieve vegetation data, Sentinel spectral bands can be accessed via the OpenEO package to calculate a vegetation index. A mosaic reconstruction is then performed using raw imagery, allowing you to assess the available coverage over your LOI while accounting for cloud cover.
 
@@ -29,22 +29,22 @@ To retrieve vegetation data, Sentinel spectral bands can be accessed via the Ope
 
 To handle `cloud cover` using the OpenEO package, the cloud_cover option can be used to filter for images with less than a specific cloud cover percentage (set to 30% here). Additionally, the Scene Classification Layer (SCL) band (<https://brazil-data-cube.github.io/specifications/bands/SCL.html>) can be utilized to classify all pixels into several categories:
 
-| Class                    | Pixel value     |
-|--------------------------|-----------------|
-| No Data                  | 0               |
-| Satured or Defective     | 1               |
-| Dark Area Pixels         | 2               |
-| Cloud Shadows            | 3               |
-| Vegetation               | 4               |
-| Not Vegetated            | 5               |
-| Water                    | 6               |
-| Unclassified             | 7               |
-| Cloud Medium Probability | 8               |
-| Cloud High Probability   | 9               |
-| Thin Cirrus              | 10              |
-| Snow                     | 11              |
+| Class                    | Pixel value |
+|--------------------------|-------------|
+| No Data                  | 0           |
+| Satured or Defective     | 1           |
+| Dark Area Pixels         | 2           |
+| Cloud Shadows            | 3           |
+| Vegetation               | 4           |
+| Not Vegetated            | 5           |
+| Water                    | 6           |
+| Unclassified             | 7           |
+| Cloud Medium Probability | 8           |
+| Cloud High Probability   | 9           |
+| Thin Cirrus              | 10          |
+| Snow                     | 11          |
 
-When utilizing the SCL band, it is recommended to retain only pixels 4, 5, 6, and 7. 
+When utilizing the SCL band, it is recommended to retain only pixels 4, 5, 6, and 7.
 
 ### Function to extract data
 
@@ -103,7 +103,7 @@ mosaicVegetation = function(start_date, end_date, filename) {
 }
 
 ```
- 
+
 For example, using a defined LOI, a mosaic reconstruction can be performed for two distinct periods: before and after the cyclone of interest (here, Chido 12/2024).
 
 ```{r beforeAfter, eval = FALSE}
@@ -119,6 +119,7 @@ mosaicVegetation("2025-01-01", "2025-01-31", "ndvi_after_chido.tif")
 ### Output
 
 Here, the NDVI mosaic reconstruction for Mayotte across both periods is presented
+
 ```{r mosaicsperso, echo=FALSE}
 library(slickR)
 

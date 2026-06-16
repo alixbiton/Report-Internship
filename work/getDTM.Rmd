@@ -21,7 +21,7 @@ login()
 p = processes()
 ```
 
-##Copernicus DEM30
+## Copernicus DEM30
 
 To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from : <http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000>
 

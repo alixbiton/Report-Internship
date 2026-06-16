@@ -85,7 +85,7 @@ vmax_aligned <- crop(max_speed_raster, demMayotte)
 mswMayotte <- mask(vmax_aligned, demMayotte)
 
 # tew6 
-tew6Mayotte <- computeTEW(sts, demMayotte, pf, product = "Summary", angle = 6, verbose = 0)
+tew6Mayotte <- computeTEW(pf, sts, demMayotte,  product = "TEWIntegrated", angle = 6, verbose = 0)
 
 # courbure
 penteM <- terrain(demMayotte, v= "slope")
@@ -140,10 +140,9 @@ limits <- st_bbox(pred_mayotte)
 
 ```
 
-
 ### Prédictions du modèle (linéaire)
 
-Les prédictions du modèle linéaire sur les parties forestières de l'île de Mayotte peuvent être visualisées de la sorte : 
+Les prédictions du modèle linéaire sur les parties forestières de l'île de Mayotte peuvent être visualisées de la sorte :
 
 ```{r plot prediction, echo= FALSE, message = FALSE, warning = FALSE, fig.align='center'}
 
@@ -176,9 +175,9 @@ ggplot() +
   theme_minimal()
 ```
 
-### Statistiques des dommages 
+### Statistiques des dommages
 
-On peut faire des petites statistiques globales afin de connaître le jeu de déonnes de prédictions. 
+On peut faire des petites statistiques globales afin de connaître le jeu de déonnes de prédictions.
 
 ```{r statsbasics, echo = FALSE}
 # Résolution ~27.7 m → 1 pixel ≈ 0.000277° × 0.000277°
@@ -211,13 +210,11 @@ stats_globales <- data.frame(
 )
 
 print(stats_globales)
-``` 
+```
 
 On peut aussi classer les dommages selon plusieurs seuils de dommages en se basant sur les travaux de *Peereman,2020* : \\
 
-**Très fort < -0.80 < Fort < -0.60 < Modéré < -0.40 < Faible < -0.20 < Très faible < 0 < Nul/ gain**
-
-
+**Très fort \< -0.80 \< Fort \< -0.60 \< Modéré \< -0.40 \< Faible \< -0.20 \< Très faible \< 0 \< Nul/ gain**
 
 ```{r histodegats, echo = FALSE, fig.align='center'}
 
@@ -297,8 +294,7 @@ print(p_histo)
 
 ```
 
-
-A partir de ces seuils, on peut donc revisualiser ces dommages avec les seuils : 
+A partir de ces seuils, on peut donc revisualiser ces dommages avec les seuils :
 
 ```{r cartedommages, echo = FALSE, warning = FALSE, message = FALSE, fig.align='center'}
 # Reclassification en raster de classes
