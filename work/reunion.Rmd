@@ -1,0 +1,125 @@
+---
+title: "Réunion"
+author: "Alix Biton"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goal
+
+In perspective of the implementation of topographic exposure to wind (TEW) in the `StormR`package, trying to find climatic refugia and the most exposed zones accross time and all historical cyclones that could occur in an island. A good example is the Réunion island, which is a hotspot for cyclones. 
+Get all cyclones that occured in a 300km zone around the island for the past 25 years can highlight the most vulnerable part of the island. 
+
+
+## Hurricanes extraction
+
+IBTrACS data base allowed us to have access to hurricane's information. I established a location of interest of 300 km around La Réunion.
+
+```{r load, include = FALSE}
+devtools::load_all(path = "~/Documents/StormR/")
+#library(StormR)
+library(terra)
+library(viridis)
+```
+
+```{r extraction, echo= FALSE, warning = FALSE, message = FALSE, results ='hide'}
+
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2000,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+which(map_subunits$SUBUNIT=="Réunion")
+loiSf <- map_subunits[261,]$geometry |> sf::st_as_sf()
+
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf
+)
+``` 
+
+The trajectories of all hurricanes recensed in the IBtraCS database since 2000 can be visualised: 
+
+```{r plotstorm, echo= FALSE, fig.align='center'}
+plotStorms(sts, dynamicPlot= TRUE)
+```
+
+## Spatial behaviour
+
+The function `spatialBehaviour` give us information on each observation in the spatial profiles. The outputs of the function compute the radial wind speed and direction for one observation with `"Profiles"` output whereas `"MSW"` product compute the maximum wind speed in the loi for all the hurricane.
+
+```{r spatial}
+sp <- spatialBehaviour(sts, product = c("Profiles","MSW"),verbose = 0)
+```
+
+## Topographic exposure to wind
+
+Thanks to the package openEO and a connection to copernicus, we can extract the topographic information in Copernicus DEM 30 of the island, at 30m of resolution. Here, the Digital Terrain Model is extracted from Copernicus Browser (<https://browser.dataspace.copernicus.eu/>), at 90m resolution so that the file isn't too heavy to compute. 
+
+```{r dtm}
+dtm <- rast("../data/reunion/dtm_reunion.tiff")
+
+# mask to see only land
+mask_land <- ifel(dtm > 0, 1, NA)
+dtm <- dtm * mask_land
+
+plot(dtm, main = "DTM of Réunion",
+          col = cividis(100))
+```
+
+Topographic exposure to wind (TEW) index can be computed for each hurricane thanks to the `computeTEW`function.
+
+```{r tew}
+tewAll <- computeTEW(sp, sts, dtm, product = "TEWIntegrated", verbose = 0)
+```
+
+TEW can be plotted individually to see how the hurricane impacted the island. Here a few examples : 
+
+```{r plottew, fig.align='center'}
+par(mfrow=c(1,2))
+plotTEW(sts, tewAll$FREDDY_TEW_Integrated, dtm, main = "FREDDY")
+plotTEW(sts, tewAll$BELAL_TEW_Integrated, dtm, main = "BELAL")
+```
+
+## Climate refuges
+
+A climate refuge is a geographic area that maintains relatively stable and sustainable environmental conditions during periods of global climate change or repeated extreme events. These protected areas allow biodiversity (flora and fauna) or human populations to seek shelter there in order to survive and persist in the long term in the face of surrounding disturbances.
+
+```{r mean}
+col <- grDevices::hcl.colors(100, palette = "RdBu", rev = TRUE)
+
+
+# mean exposition on all cyclones
+meanCyc <- app(tewAll, fun = mean, na.rm = TRUE)
+plot(meanCyc, col = col)
+
+# max exposition experienced (the worst-case scenario recorded for each pixel)
+maxCyc <- app(tewAll, fun = max, na.rm = TRUE)
+plot(maxCyc, col = col)
+```
+
+The 15% of areas with the lowest average TEW can be highlighted to estimate the less "vulnerable" areas fo the island for the mean TEW of 44 hurricanes. 
+
+```{r refuges}
+
+# threshold of 15
+threshold <- as.numeric(global(meanCyc, quantile, probs = 0.15, na.rm = TRUE))
+
+# mask
+meanRefuges <- ifel(meanCyc <= threshold, 1, NA)
+meanRefuges <- meanRefuges * mask_land
+
+# plot and view refuges
+plot(dtm, col = gray.colors(100), main = "Refuges : 15% least exposed")
+plot(meanRefuges, col = "darkgreen", add = TRUE, legend = FALSE)
+```
+
