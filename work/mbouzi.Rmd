@@ -34,9 +34,9 @@ Comme on peut le voir visuellement sur ces premières cartes, les dégâts obser
 
 ```{r data, echo = FALSE}
 library(terra)
-decraw  <- rast("/home/abiton/Documents/sentinel/L2A/before/decNDVI.tif")
-janraw  <- rast("/home/abiton/Documents/sentinel/L2A/after/janNDVI.tif")
-dem  <- rast("/home/abiton/Documents/dem_data/dem_mayotte.tif")
+decraw  <- rast("../data/mayotte/decNDVI.tif")
+janraw  <- rast("../data/mayotte/janNDVI.tif")
+dem  <- rast("../data/mayotte/dem_mayotte.tif")
 
 emprise    <- ext(45.228889, 45.241055, -12.818204, -12.803578) #mbouzi
 poly_utm   <- project(as.polygons(emprise, crs="EPSG:4326"), crs(decraw))
@@ -60,7 +60,7 @@ v_dec <- values(mask(dec, common_mask, maskvalue=0), na.rm=TRUE)
 v_jan <- values(mask(jan, common_mask, maskvalue=0), na.rm=TRUE)
 v_diff <- values(mask(diff_ndvi, common_mask, maskvalue=0), na.rm = TRUE)
 
-dtaMbouzi <- read.csv("/home/abiton/Documents/scriptR tests/dataMbouzi.csv")
+dtaMbouzi <- read.csv("../data/mayotte/dataMbouzi.csv")
 ```
 
 Avant de commencer les statistiques, il faut faire des statistiques basiques afin de vérifier quantitativement si les différences sont significatives.

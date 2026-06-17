@@ -23,7 +23,6 @@ devtools::load_all(path = "~/Documents/StormR/")
 library(terra)
 ```
 
-
 ```{r extraction, echo=FALSE, warning=FALSE,message =FALSE, results='hide'}
 sds_mel <- defStormsDataset(filename = "~/Documents/IBTrACS.NA.v04r01.nc", verbose = 0)
 
@@ -101,9 +100,7 @@ Thanks to the package openEO and a connection to copernicus, we can extract the 
 dtm <- rast("../data/jamaique/dem_jamaique.tif")
 ```
 
-
-The extraction of the Digital Terrain Model can be very heavy. If too large, `computeTEW()` can be really long to compute. 
-
+The extraction of the Digital Terrain Model can be very heavy. If too large, `computeTEW()` can be really long to compute.
 
 ```{r TEWMelissa}
 pf <- computeTEW(sp, st, dtm, product = "TEWIntegrated", verbose = 0)
@@ -113,21 +110,20 @@ pf
 ```{r plotTEW}
 plotTEW(st, pf$MELISSA_TEW_Integrated, dtm)
 ```
+
 This image show the result of the integrated product **Integrated** of the `computeTEW` function I've been developing for my internship. This function compute, for each point of the DTM, the topographic exposure to wind (TEW) when there was the maximum speed wind.
 
 It's searching the maximum wind speed for each point and get the associated direction to compute the topographic exposure to wind. We can say that it links the vulnerability of the terrain (exposure) to the precise moment when the danger is greatest (maximum speed) for each point on the map.
 
 We can also use this function with a `threshold`. Here for example I ran the function with a 33m/s threshold which means that only the area of the island who were exposed to winds greater than 33m/s were computed.
- 
+
 ```{r thresholdMel}
 pf33 <- computeTEW(sp, st, dtm, product = "TEWIntegrated", threshold = 33, verbose = 0)
 plotTEW(st, pf33$MELISSA_TEW_Integrated, dtm)
 ```
 
-TEW can be visualised in a dynamic way : 
+TEW can be visualised in a dynamic way :
 
 ```{r dynamic}
 plotTEW(st, pf33$MELISSA_TEW_Integrated, dtm, dynamicPlot = TRUE)
 ```
-
-

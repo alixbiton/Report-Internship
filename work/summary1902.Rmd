@@ -15,7 +15,7 @@ Le principe de la fonction qui permet de calculer l'exposition topographique au 
 
 ```{r getData, include=FALSE}
 library(terra)
-dem <- rast("/home/abiton/Documents/dem_data/mayotte_dem_glo30.tiff")
+dem <- rast("../data/mayotte/dem_mayotte.tiff")
 
 devtools::load_all("/home/abiton/Documents/StormR")
 sds <- defStormsDataset(

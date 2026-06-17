@@ -13,7 +13,7 @@ On peut faire une première visualisation simple des données afin de savoir com
 
 ```{r}
 # donnees ####
-dta <- read.csv("~/Documents/scriptR tests/datasummary.csv", sep = ",", header = TRUE)
+dta <- read.csv("../data/mayotte/datasummary.csv", sep = ",", header = TRUE)
 dta <- dta[ ,c("ang6","pente","longitude","latitude","altitude","courbure","msw_max","delta_ndvi","wem","delta_ndii")]
 # découpage des données en un jeu d'entrainement (70%) et un jeu de test (30%)
 set.seed(1234)

@@ -34,9 +34,9 @@ Pour l'utilisation de la SCL, j'ai gardé seulement les pixels 4,5,6,7. J'ai tes
 
 Voici la fonction pour récupérer les données de NDVI.
 
-```{r function,warning = FALSE, results = FALSE, message=FALSE}
+```{r function,warning = FALSE, results = FALSE, message=FALSE, eval = false}
 bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
-dossier_out = "/home/abiton/Documents/sentinel" 
+dossier_out = "../filepath" 
 
 
 get_ndvi_masked = function(start_date, end_date, filename) {
