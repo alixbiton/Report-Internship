@@ -10,9 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Goal
 
-In perspective of the implementation of topographic exposure to wind (TEW) in the `StormR`package, trying to find climatic refugia and the most exposed zones accross time and all historical cyclones that could occur in an island. A good example is the Réunion island, which is a hotspot for cyclones. 
-Get all cyclones that occured in a 300km zone around the island for the past 25 years can highlight the most vulnerable part of the island. 
-
+In perspective of the implementation of topographic exposure to wind (TEW) in the `StormR`package, trying to find climatic refugia and the most exposed zones accross time and all historical cyclones that could occur in an island. A good example is the Réunion island, which is a hotspot for cyclones. Get all cyclones that occured in a 300km zone around the island for the past 25 years can highlight the most vulnerable part of the island.
 
 ## Hurricanes extraction
 
@@ -45,9 +43,9 @@ sts <- defStormsList(
   sds = sds,
   loi = loiSf
 )
-``` 
+```
 
-The trajectories of all hurricanes recensed in the IBtraCS database since 2000 can be visualised: 
+The trajectories of all hurricanes recensed in the IBtraCS database since 2000 can be visualised:
 
 ```{r plotstorm, echo= FALSE, fig.align='center'}
 plotStorms(sts, dynamicPlot= TRUE)
@@ -63,7 +61,7 @@ sp <- spatialBehaviour(sts, product = c("Profiles","MSW"),verbose = 0)
 
 ## Topographic exposure to wind
 
-Thanks to the package openEO and a connection to copernicus, we can extract the topographic information in Copernicus DEM 30 of the island, at 30m of resolution. Here, the Digital Terrain Model is extracted from Copernicus Browser (<https://browser.dataspace.copernicus.eu/>), at 90m resolution so that the file isn't too heavy to compute. 
+Thanks to the package openEO and a connection to copernicus, we can extract the topographic information in Copernicus DEM 30 of the island, at 30m of resolution. Here, the Digital Terrain Model is extracted from Copernicus Browser (<https://browser.dataspace.copernicus.eu/>), at 90m resolution so that the file isn't too heavy to compute.
 
 ```{r dtm}
 dtm <- rast("../data/reunion/dtm_reunion.tiff")
@@ -82,7 +80,7 @@ Topographic exposure to wind (TEW) index can be computed for each hurricane than
 tewAll <- computeTEW(sp, sts, dtm, product = "TEWIntegrated", verbose = 0)
 ```
 
-TEW can be plotted individually to see how the hurricane impacted the island. Here a few examples : 
+TEW can be plotted individually to see how the hurricane impacted the island. Here a few examples :
 
 ```{r plottew, fig.align='center'}
 par(mfrow=c(1,2))
@@ -107,7 +105,7 @@ maxCyc <- app(tewAll, fun = max, na.rm = TRUE)
 plot(maxCyc, col = col)
 ```
 
-The 15% of areas with the lowest average TEW can be highlighted to estimate the less "vulnerable" areas fo the island for the mean TEW of 44 hurricanes. 
+The 15% of areas with the lowest average TEW can be highlighted to estimate the less "vulnerable" areas fo the island for the mean TEW of 44 hurricanes.
 
 ```{r refuges}
 
@@ -122,4 +120,3 @@ meanRefuges <- meanRefuges * mask_land
 plot(dtm, col = gray.colors(100), main = "Refuges : 15% least exposed")
 plot(meanRefuges, col = "darkgreen", add = TRUE, legend = FALSE)
 ```
-

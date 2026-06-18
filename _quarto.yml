@@ -20,56 +20,40 @@ website:
         menu: 
           - href: work/melissa.Rmd
             text: "Melissa"
+          - href: work/reunion.Rmd
+            text: "Réunion"
       
       
       - text: "Weekly reports"
         menu:
+
           # --- JANVIER ---
-          - text: "--- JANVIER ---"
-          - href: hebdos/hebdo_1.Rmd
-            text: "Semaine 1"
-          - href: hebdos/hebdo_2.Rmd
-            text: "Semaine 2"
-          - href: hebdos/hebdo_3.Rmd
-            text: "Semaine 3"
+          - href: hebdos/january.Rmd
+            text: "Janvier"
           
           # --- FÉVRIER ---
-          - text: "--- FÉVRIER ---"
-          - href: hebdos/hebdo_4.Rmd
-            text: "Semaine 4"
-          - href: hebdos/hebdo_5.Rmd
-            text: "Semaine 5"
+          - href: hebdos/february.Rmd
+            text: "Février"
           - href: work/summary1902.Rmd
             text: "Réunion 19/02"
           
           # --- MARS ---
-          - text: "--- MARS ---"
-          - href: hebdos/hebdo_8.Rmd
-            text: "Semaine 8"
+          - href: hebdos/march.Rmd
+            text: "Mars"
           - href: work/brutimages.Rmd
             text: "Images brutes Mayotte"
           - href: work/mbouzi.Rmd
             text: "Mbouzi"
-          - href: hebdos/hebdo_9.Rmd
-            text: "Semaine 9&10"
-          - href: hebdos/hebdo_11.Rmd
-            text: "Semaine 11"
+
           
           # --- AVRIL ---
-          - text: "--- AVRIL ---"
-          - href: hebdos/hebdo_12.Rmd
-            text: "Semaine 12&13"
-          - href: hebdos/hebdo_15.Rmd
-            text: "Semaine 15"
-          - href: work/models.Rmd
+          - href: hebdos/april.Rmd
+            text: "Avril"
             text: "Tests modèles"
-          - href: hebdos/hebdo_16.Rmd
-            text: "Semaine 16"
           
           # --- MAI ---
-          - text: "--- MAI ---"
-          - href: hebdos/hebdo_17.Rmd
-            text: "Semaine 17"
+          - href: hebdos/may.Rmd
+            text: "Mai"
       
       - href: about.qmd
         text: "A propos"

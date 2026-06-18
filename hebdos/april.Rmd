@@ -1,0 +1,1067 @@
+---
+title: "Avril"
+author: "Alix Biton"
+date: "2026-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Récap du mois
+
+-   Masque réserve et parc par Thani
+-   Quel angle prédit le mieux les Delta NDVI ?
+-   Indice de McLaren intégré sur le temps
+-   Définition des variables explciatives
+-   Différences des différents modèles
+-   Random Forest VS Modèles linéaires
+-   Etudes sur Mbouzi
+
+```{r donnees, include = FALSE}
+library(terra)
+library(sf)
+library(dplyr)
+library(randomForest)
+library(Metrics)
+library(cluster)
+
+library(ggplot2)
+library(tidyterra)
+library(patchwork)
+
+devtools::load_all(path = "~/Documents/StormR/")
+
+dec  <- rast("../data/mayotte/decNDVI.tif")
+jan  <- rast("../data/mayotte/janNDVI.tif")
+dem  <- rast("../data/mayotte/dem_mayotte.tif")
+
+forest_mask <- st_read("../data/mayotte/FORET_PUBLIQUE/FORET_PUBLIQUE.shp")
+reserve_mask <- st_read ("../data/mayotte/PARC_OU_RESERVE/PARC_OU_RESERVE.shp")
+
+dta <- read.csv("../data/mayotte/datasummary.csv", header = TRUE, sep = ",")
+results <- read.csv("../data/mayotte/results100ang.csv", header = TRUE, sep = ",")
+
+map_subunits <- sf::st_read("../data/storm/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+
+
+```
+
+
+## Semaine 12&13 (30/03 au 11/04)
+
+### Objectifs
+
+-   Rajouter le masque de réserve et parc
+-   Etudier quel angle prédit le mieux les différences de végétation
+-   Faire le modèle McLaren intégré sur le temps
+
+### Masque réserve et parc
+
+A partir des données de Thani, on obtient un masque montrant seulement les forêts publiques et les parcs et réserves naturelles de Mayotte.
+
+```{r prepa mask, include = FALSE}
+
+dec_crs <- project(dec, dem)
+jan_crs <- project(jan, dem)
+
+
+#mask land
+
+mask_land <- ifel(dem > 0, 1, NA)
+dem_land <- dem * mask_land
+dec_land <- dec_crs *mask_land
+jan_land <- jan_crs* mask_land
+contour_auto <- as.polygons(mask_land > 0)
+
+
+
+forest_mask <- st_transform(forest_mask, crs(dem))
+forest_mask <- rasterize(forest_mask, dem)
+
+reserve_mask <- st_transform(reserve_mask, crs(dem))
+reserve_mask <- rasterize(reserve_mask, dem)
+full_forest_mask <- cover(forest_mask, reserve_mask)
+
+demmasked <- dem * full_forest_mask
+common_mask <- !is.na(dec_land) & !is.na(jan_land) & !is.na(demmasked)
+
+
+dem_final <- mask(dem, common_mask, maskvalue = FALSE)
+jan_final <- mask(jan_crs, common_mask, maskvalue = FALSE)
+dec_final <- mask(dec_crs, common_mask, maskvalue = FALSE)
+diff_ndvi <- jan_final - dec_final
+
+```
+
+```{r plot mask, echo = FALSE, fig.align='center'}
+
+plot(dem_final, main = "DEM (Masque forêt et reserve)")
+plot(contour_auto, add = TRUE, border = "black")
+
+plot(dec_final, main = "Décembre (Masque forêt et reserve",
+     col = colorRampPalette(c("steelblue", "yellow", "green4"))(100),
+     range = c(-1,1))
+plot(contour_auto, add = TRUE, border = "black")
+
+plot(jan_final, main = "Janvier (Masque forêt et reserve)",
+     col = colorRampPalette(c("steelblue", "yellow", "green4"))(100),
+     range = c(-1,1))
+plot(contour_auto, add = TRUE, border = "black")
+
+plot(diff_ndvi, main = "Différence de NDVI (en rouge perte de végétation)",
+     col = colorRampPalette(c("darkred", "white", "darkblue"))(100),
+     range = c(-1,1))
+plot(contour_auto, add = TRUE, border = "black")
+
+```
+
+### Quel angle prédit le mieux ?
+
+Boose et al. (1994) fixe aléatoirement un angle d'inflexion de référence à 6° tandis que celui présent dans les travaux de McLaren sont de 20° afin de calculer l'exposition topographique au vent. Il faut donc établir quel angle explique le mieux les différences de végétation après Chido. J'ai regardé un modèle très simple :
+
+```{r basicmodel, warning=FALSE,eval=FALSE}
+lm(diffNdvi ~ angle*msw, data = dta)
+```
+
+Où angle est une variable quantitative avec les valeurs d'exposition topographique au vent calculé avec un angle d'inflexion fixé. Pour prédire lequel est le mieux, j'ai fait varier l'exposition topographique au vent (tew) entre 2 et 20° (2, 4, 6, 8, 10, 12, 14, 16, 18, 20).
+
+Plusieurs paramètres de modèle nous permettent de voir quel est le meilleur modèle parmi tous ces angles :
+
+-   AIC : plus il est faible, meilleur est le modèle
+-   R² : plus il est proche de 1, meilleur est le modèle
+-   Coefficient (estimate) : plus il est négatif, plus les différences de ndvi sont des pertes donc provoquent plus de dégâts.
+-   P-value : afin de vérifier la significativité
+
+Voici le code pour plotter les résultats de ces modèles :
+
+```{r plot paramater model, warning = FALSE}
+
+
+# names of angles variables
+angles_cols <- paste0("ang", seq(2, 20, by = 2))
+
+# empty dataframe to stock parameters
+results_20 <- data.frame(
+  angle = angles_cols,
+  AIC = NA,
+  R2_adj = NA,
+  p_value = NA,
+  pente_angle = NA,
+  pente_msw = NA,
+  coef_interaction = NA
+)
+
+
+# compute model to stock in results_20
+for (i in 1:length(angles_cols)) {
+  var_angle <- angles_cols[i]
+  
+  # formula for linear model
+  formule <- as.formula(paste("delta_ndvi ~", var_angle, "* msw_max"))
+  
+  # model
+  model <- lm(formule, data = dta)
+  
+  # get parameters
+  results_20$AIC[i]    <- AIC(model)
+  results_20$R2_adj[i] <- summary(model)$adj.r.squared
+  results_20$p_value[i] <- summary(model)$coefficients[var_angle, 4]
+  results_20$pente_angle[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+  results_20$pente_msw[i] <- summary(model)$coefficients[3,1]
+  results_20$coef_interaction[i] <- summary(model)$coefficients[4,1]
+}
+
+print(results_20)
+
+
+
+```
+
+```{r plot model, echo = FALSE, fig.align='center'}
+# identification best angle
+
+
+bestr2 <- which.max(results_20$R2_adj)
+bestpenteangle <- which.max(abs(results_20$pente_angle))
+
+
+# plots
+
+par(mfrow = c(1,2))
+
+plot(dta$longitude, dta$latitude, col = "darkgreen", pch = 20, asp = 1,
+     main = "Points extraits : Tout Mayotte",
+     xlab = "Longitude", ylab = "Latitude")
+
+
+plot(seq(2, 20, 2), results_20$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p-value",
+     main = "Comparaison de la p-value")
+
+
+plot(seq(2,20,2), results_20$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+points(seq(2,20,2)[bestr2], results_20$R2_adj[bestr2], col = "red", cex = 2, lwd = 2)
+
+
+plot(seq(2,20,2), results_20$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+points(seq(2,20,2)[bestpenteangle], results_20$pente_angle[bestpenteangle], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), results_20$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,20,2), results_20$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
+
+#### Autre échantillon
+
+La zone entière de Mayotte (masqué) correspond à plus de 20 000 observations donc j'ai voulu tester sur un sous-echantillon qui est l'îlot de Mbouzi (718 observations)
+
+```{r mbouzi dta, warning = FALSE, echo = FALSE}
+
+lon_min <- 45.228889
+lon_max <- 45.241055
+lat_min <- -12.818204
+lat_max <- -12.803578
+
+
+# Filtrage du data frame
+dtaMbouzi <- subset(dta, 
+                        longitude >= lon_min & longitude <= lon_max & 
+                          latitude >= lat_min & latitude <= lat_max)
+
+resultsMbouzi <- data.frame(
+  angle = angles_cols,
+  AIC = NA,
+  R2_adj = NA,
+  p_value = NA,
+  pente_angle = NA,
+  pente_msw = NA,
+  coef_interaction = NA
+)
+
+
+# compute model to stock in results
+for (i in 1:length(angles_cols)) {
+  var_angle <- angles_cols[i]
+  
+  # formula for linear model
+  formule <- as.formula(paste("delta_ndvi ~", var_angle, "* msw_max"))
+  
+  # model
+  model <- lm(formule, data = dtaMbouzi)
+  
+  # get parameters
+  resultsMbouzi$AIC[i]    <- AIC(model)
+  resultsMbouzi$R2_adj[i] <- summary(model)$adj.r.squared
+  resultsMbouzi$p_value[i] <- summary(model)$coefficients[var_angle, 4]
+  resultsMbouzi$pente_angle[i] <- summary(model)$coefficients[var_angle, "Estimate"]
+  resultsMbouzi$pente_msw[i] <- summary(model)$coefficients[3,1]
+  resultsMbouzi$coef_interaction[i] <- summary(model)$coefficients[4,1]
+}
+```
+
+```{r print mbouzi}
+print(resultsMbouzi)
+
+```
+
+```{r plot Mbouzi, echo = FALSE, fig.align='center'}
+
+bestr2 <- which.max(resultsMbouzi$R2_adj)
+bestpenteangle <- which.max(abs(resultsMbouzi$pente_angle))
+
+
+# plots
+
+par(mfrow = c(1,2))
+
+plot(dtaMbouzi$longitude, dtaMbouzi$latitude, col = "darkgreen", pch = 20, asp = 1,
+     main = "Points extraits : îlot Mbouzi",
+     xlab = "Longitude", ylab = "Latitude")
+
+
+plot(seq(2, 20, 2), resultsMbouzi$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p-value",
+     main = "Comparaison de la p-value")
+
+
+plot(seq(2,20,2), resultsMbouzi$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+points(seq(2,20,2)[bestr2], resultsMbouzi$R2_adj[bestr2], col = "red", cex = 2, lwd = 2)
+
+
+plot(seq(2,20,2), resultsMbouzi$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+points(seq(2,20,2)[bestpenteangle], resultsMbouzi$pente_angle[bestpenteangle], col = "red", cex = 2, lwd = 2)
+
+plot(seq(2,20,2), resultsMbouzi$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,20,2), resultsMbouzi$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
+
+De plus, j'ai tenté avec des sous-échantillon aléatoires, les résultats sont à chaque fois similaires.
+
+#### Jusqu'à 100°
+
+En calculant l'exposition topographique pour des angles allant jusqu'à 100°, on peut voir le R maximum, l'AIC minimum ainsi que les différentes pentes et c'est aux alentours de 80°. Est-ce que cela est pertinent du coup ?
+
+```{r 100ang,echo = FALSE, fig.align='center'}
+
+
+par(mfrow = c(1,1))
+
+plot(seq(2, 100, 2), results$p_value, type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "p value",
+     main = "Comparaison de la p value")
+
+plot(seq(2, 100, 2), log(results$p_value), type = "b", pch = 19, col = "darkblue",
+     xlab = "Angle d'inflexion (°)", ylab = "log(p value)",
+     main = "Comparaison de la log(p value)")
+
+
+plot(seq(2,100,2), results$R2_adj, type = "b", pch = 19, col = "olivedrab3",
+     xlab = "Angle d'inflexion (°)", ylab = "R2",
+     main = "Comparaison du paramètre R2")
+
+
+plot(seq(2,100,2), results$pente_angle, type = "b", pch = 19, col = "orange",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente texp angle",
+     main = "Comparaison pente texp angle")
+
+
+plot(seq(2,100,2), results$pente_msw, type = "b", pch = 19, col = "violet",
+     xlab = "Angle d'inflexion (°)", ylab = "Pente msw",
+     main = "Comparaison pente msw")
+
+
+plot(seq(2,100,2), results$coef_interaction, type = "b", pch = 19, col = "yellow2",
+     xlab = "Angle d'inflexion (°)", ylab = "Coefficient interaction",
+     main = "Comparaison interaction")
+```
+
+## Carte de différences en fonction des angles
+
+J'ai fait quelques cartes de différences des ecposition topographiques calculées à partir de différents angles et je les ai comparées avec l'exposition topographique de référence (à 6°).
+
+Si les différences sont :
+
+-   negatives : l'angle 6° détecte plus de protection
+-   nulles : même estimation du tew
+-   positives : l'angle 6° détecte plus d'exposition
+
+```{r carte tew diff, echo = FALSE, warning = FALSE, message= FALSE, results='hide'}
+
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+
+exp2 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 2, verbose = 0)
+exp4 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 4, verbose = 0)
+exp6 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 6, verbose = 0)
+exp8 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 8, verbose = 0)
+exp10 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 10, verbose = 0)
+exp12 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 12, verbose = 0)
+exp14 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 14, verbose = 0)
+exp16 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 16, verbose = 0)
+exp18 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 18, verbose = 0)
+exp20 <- computeTEW(pf, sts, dem_final, product = "TEWIntegrated", angle = 20, verbose = 0)
+
+exposures <- list(
+  exp2  = exp2,
+  exp4  = exp4,
+  exp8  = exp8,
+  exp10 = exp10,
+  exp12 = exp12,
+  exp14 = exp14,
+  exp16 = exp16,
+  exp18 = exp18,
+  exp20 = exp20
+)
+
+angles <- c(2, 4, 8, 10, 12, 14, 16, 18, 20)
+
+# Boucle pour afficher les différences avec exp6
+par(mfrow = c(3, 3))  # Grille 3x3 pour afficher tous les plots
+
+for (i in seq_along(exposures)) {
+  diff_raster <- exp6 - exposures[[i]]
+  
+  plot(diff_raster,
+       main = paste0("exp6 - exp", angles[i]),
+       col  = colorRampPalette(c("darkblue", "white", "darkred"))(100),
+       legend = TRUE)
+}
+
+```
+
+# Modèle intégré
+
+Le modèle (Wind Exposure Model WEM) que l'on recherche à faire intègre le vent (MSW) et l'exposition topographique au vent (TEW) sur le temps
+
+$$\text{WEM} = \int \text{MSW}(x,y,t) \times \text{TEW}(x,y,t) \, dt$$
+
+```{r get msw and tew}
+#get msw layers
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+speed_layers <- pf[[grep("CHIDO_Speed", names(pf))]]
+
+#project same as dem_final to match tew
+project_raster <- project(speed_layers, dem_final)
+speed_aligned <- crop(project_raster, dem_final)
+speed_layers <- mask(speed_aligned, dem_final)
+
+
+# get tew
+tew6 <- computeTEW(pf, sts, dem_final, product = "TEW", verbose = 0)
+
+# change scale of tew (-1/1 --> 0/1)
+tew_min <- global(tew6, "min", na.rm = TRUE) |> min()
+tew_max <- global(tew6, "max", na.rm = TRUE) |> max()
+
+tew6_norm <- (tew6 - tew_min) / (tew_max - tew_min)
+#check 
+global(tew6_norm, range, na.rm = TRUE)
+
+```
+
+```{r modelkurt}
+dt <- 1  # hour
+n_t <- nlyr(speed_layers)
+
+# integer layer by layer
+wem <- app(speed_layers * tew6_norm, sum, na.rm = TRUE) * dt 
+
+names(wem) <- "wem"
+plot(wem, main = "wem cumulé")
+
+```
+
+Pour chaque cellule, on additionne à chaque heure MSW × TEW. Une cellule avec un WEM élevé a reçu beaucoup de vent et est topographiquement exposée, de façon cumulée sur toute la période.
+
+On peut faire quelques statistiques descriptives sur ce modèle. Tout d'abord un petit résumé numérique.
+
+```{r range}
+stats_globales <- global(wem, c("min", "max", "mean", "sd"), na.rm = TRUE)
+print(stats_globales)
+```
+
+On peut aussi faire un histogramme de distribution spatiale
+
+```{r hist}
+hist(wem,
+     main   = "Distribution spatiale du wem",
+     xlab   = "WEM",
+     ylab   = "Fréquence",
+     col    = "steelblue",
+     border = "white",
+     breaks = 50)
+```
+
+On peut aussi voir la contribution de chaque couche.
+
+```{r contrib}
+
+
+# moyenne spatiale du produit MSW × TEW à chaque pas de temps
+contrib_temporelle <- global(speed_layers * tew6_norm, "mean", na.rm = TRUE)
+contrib_temporelle$pas <- seq_len(nrow(contrib_temporelle))
+names(contrib_temporelle)[1] <- "contribution_moyenne"
+
+
+plot(contrib_temporelle$pas,
+     contrib_temporelle$contribution_moyenne,
+     type = "l",
+     col  = "steelblue",
+     lwd  = 1.5,
+     main = "Contribution moyenne par pas de temps",
+     xlab = "Pas de temps (h)",
+     ylab = "MSW × TEW moyen")
+
+
+top10 <- contrib_temporelle |>
+  dplyr::arrange(desc(contribution_moyenne)) |>
+  head(10)
+cat("\nTop 10 des pas de temps les plus contributeurs :\n")
+print(top10)
+```
+
+
+
+## Semaine 15 (20/04 au 24/04)
+
+### Filtrer le jeu de données
+
+Le masque établi a gardé quelques pixels qui peuvent être interprété par de la mer par les données Sentinel. On va donc filtrer à une altitude dépassant les 50m et un indice de NDVI élevé afin de ne garder seulement les forêts denses pré-cyclones (en décembre pour Chido).
+
+```{r pbs}
+par(mfrow = c(1,2))
+hist(dta$altitude, breaks = 50, col = "lightblue",
+     xlab = "Altitude", main = NULL)
+abline(v = 50, col = "red", lty = 2)
+hist(dta$dec_ndvi, breaks = 50, col = "lightgreen",
+     xlab = "NDVI pré-cyclonique", main = NULL)
+abline(v = 0.7, col = "red", lty = 2)
+plot(dta$msw_max, dta$delta_ndvi)
+```
+
+On peut voir les pixels parasites aux alentours de 10m d'altitude. De plus, le NDVI de décembre est caractérisé par des forêts denses en majorité, on établit donc un seuil de 0.7. Cela nous permettra d'éliminer l'effet que l'on peut voir dans le troisième graphique où, lorsque le vent est plus fort, on a passé un certain seuil, une remontée du delta_ndvi.
+
+```{r filtre}
+dtaFiltered <- dta[(dta["dec_ndvi"] > 0.7) & (dta["altitude"] >= 50),]
+
+par(mfrow = c(1,2))
+hist(dtaFiltered$altitude, breaks = 50, col = "lightblue",
+     xlab = "Altitude", main = "après filtre")
+hist(dtaFiltered$dec_ndvi, breaks = 20, col = "lightgreen",
+     xlab = "NDVI pre-cyclonique", main = "après filtre")
+```
+
+Ce filtrage devrait considérablement améliorer les modèles. De plus, il faut standardisé les différentes variables afin qu'elles soient comparables entre elles.
+
+```{r scale}
+scaledVar <- c("altitude","wem","pente","courbure","ang6","msw_max")
+dtaScaled <- dtaFiltered
+
+# Au lieu de lapply direct, on force en numeric pour enlever les attributs de la matrice scale
+for (v in scaledVar) {
+  dtaScaled[[v]] <- as.numeric(scale(dtaFiltered[[v]]))
+}
+summary(dtaFiltered$altitude)
+summary(dtaScaled$altitude)
+```
+
+On peut enfin séparer le jeu de données en un jeu d'entrainement et un jeu de test pour vérifier comment les mdèles prédisent les différences de végétation après un cyclone.
+
+```{r test and train}
+set.seed(1234)
+train_id <- sample(nrow(dtaScaled), 0.7*nrow(dtaScaled))
+dta_train <- dtaScaled[train_id, ]
+dta_test <- dtaScaled[-train_id, ]
+```
+
+Les données sont prêtes !
+
+### Modèles
+
+```{r models}
+
+msw_range <- seq(min(dta$msw_max), max(dta$msw_max), length.out = 300)
+
+# ---- Fonction utilitaire R² ----
+r2 <- function(obs, pred) {
+  1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
+}
+
+# ============================================================
+# 1. MODÈLE LINÉAIRE
+# ============================================================
+m1 <- lm(delta_ndvi ~ msw_max, data = dta_train)
+summary(m1)
+
+# ============================================================
+# 2. +ang 6
+# ============================================================
+m2 <- lm(delta_ndvi ~ msw_max + ang6, data = dta_train)
+summary(m2)
+
+# ============================================================
+# 3. *ang6
+# ============================================================
+m3 <- lm(delta_ndvi ~ msw_max * ang6, data = dta_train)
+summary(m3)
+
+
+# ============================================================
+# 4. *ang6 + courbure
+# ============================================================
+m4 <- lm(delta_ndvi ~ msw_max * ang6 + courbure, data = dta_train)
+summary(m4)
+
+
+# ============================================================
+# 5. *ang6 + courbure + wem 
+# ============================================================
+m5 <- lm(delta_ndvi ~ msw_max * ang6 + courbure + wem, data = dta_train)
+summary(m5)
+
+
+# ============================================================
+# 6. RANDOM FOREST (toutes variables)
+# ============================================================
+vars <- c("ang6","pente","altitude","courbure","msw_max")
+
+m6 <- randomForest(
+  x          = dta_train[, vars],
+  y          = dta_train$delta_ndvi,
+  ntree      = 100,
+  importance = TRUE
+)
+
+
+
+```
+
+On peut comparer les R2 :
+
+```{r R2, include = FALSE}
+#m1
+r2_m1_train <- r2(dta_train$delta_ndvi, predict(m1, dta_train))
+r2_m1_test  <- r2(dta_test$delta_ndvi,  predict(m1, dta_test))
+rmse_m1     <- rmse(dta_test$delta_ndvi, predict(m1, dta_test))
+
+#m2
+r2_m2_train <- r2(dta_train$delta_ndvi, predict(m2, dta_train))
+r2_m2_test  <- r2(dta_test$delta_ndvi,  predict(m2, dta_test))
+rmse_m2     <- rmse(dta_test$delta_ndvi, predict(m2, dta_test))
+
+#m3
+r2_m3_train <- r2(dta_train$delta_ndvi, predict(m3, dta_train))
+r2_m3_test  <- r2(dta_test$delta_ndvi,  predict(m3, dta_test))
+rmse_m3     <- rmse(dta_test$delta_ndvi, predict(m3, dta_test))
+
+#m4
+r2_m4_train <- r2(dta_train$delta_ndvi, predict(m4, dta_train))
+r2_m4_test  <- r2(dta_test$delta_ndvi,  predict(m4, dta_test))
+rmse_m4     <- rmse(dta_test$delta_ndvi, predict(m4, dta_test))
+
+#m5
+r2_m5_train <- r2(dta_train$delta_ndvi, predict(m5, dta_train))
+r2_m5_test  <- r2(dta_test$delta_ndvi,  predict(m5, dta_test))
+rmse_m5     <- rmse(dta_test$delta_ndvi, predict(m5, dta_test))
+
+#m6
+r2_m6_train <- r2(dta_train$delta_ndvi, predict(m6, dta_train))
+r2_m6_test  <- r2(dta_test$delta_ndvi,  predict(m6, dta_test))
+rmse_m6     <- rmse(dta_test$delta_ndvi, predict(m6, dta_test))
+
+# ============================================================
+# TABLEAU RÉCAPITULATIF
+# ============================================================
+resultats <- data.frame(
+  Modele     = c("Linéaire", "+ang6", "*ang6",
+                 "+ang6 + courbure", "+ang6 + courbure + wem",
+                 "Random Forest (all vars)"),
+  R2_Train   = round(c(r2_m1_train, r2_m2_train, r2_m3_train,
+                       r2_m4_train, r2_m5_train, r2_m6_train), 4),
+  R2_Test    = round(c(r2_m1_test,  r2_m2_test,  r2_m3_test,
+                       r2_m4_test,  r2_m5_test,  r2_m6_test), 4),
+  RMSE_Test  = round(c(rmse_m1, rmse_m2, rmse_m3,
+                       rmse_m4, rmse_m5, rmse_m6), 4)
+)
+```
+
+```{r resultsanova}
+resultats
+anova(m1,m2,m3,m4,m5)
+```
+
+### Predictions VS Observées
+
+On peut regarder les observations VS les prédictions des différents modèles sur le jeu de test afin de voir si les modèles prédisent correctement les dommages de végétation.
+
+```{r pred}
+
+models <- list(m1 = m1, m2 = m2, m3 = m3, m4 = m4, m5 = m5)
+
+
+par(mfrow = c(2, 3))
+
+for (nom in names(models)) {
+  m <- models[[nom]]
+  pred <- predict(m, newdata = dta_test)
+  obs  <- dta_test$delta_ndvi
+  
+  plot(obs, pred,
+       main = paste(nom, "- Obs vs Pred"),
+       xlab = "Observé", ylab = "Prédit",
+       pch = 16, col = "steelblue")
+  abline(0, 1, col = "red", lwd = 2)  # droite parfaite y = x
+}
+
+```
+
+**Résidus** : Valeur observée - valeur prédite Vérifier l'autocorrélation spatiale des résidus dans un contexte spatial grâce au test de Moran.
+
+### Zones d'intérêts
+
+Afin de mieux visualiser à plus petite échelle, on peut établir plusieurs zones d'intérêts :
+
+-   **Nord** : Au Nord de l'île, ou le vent a frappé plutôt fort (max : 55.5 m/s) avec une altitude allant de 294 à 519m.
+-   **Sud** : Au Sud de l'île, où le vent a frappé moins fort (max : 50 m/s) avec une altitude allant de 54 à 309m.
+-   **Mbouzi** : L'ilôt Chissouia Mbouzi où le vent a eu un pic à 61 m/s et son altitude va jusqu'à 149m.
+
+```{r extractZones, include = FALSE}
+empriseMbouzi    <- ext(45.22965, 45.24033, -12.8182, -12.80250) #mbouzi
+empriseNord <- ext(45.18266,45.19334,-12.77485,-12.75915) #Nord
+empriseSud <- ext(45.15366,45.16434,-12.96385,-12.94815) #Sud
+
+#extraire fonction
+extraire_zone <- function(df, bbox) {
+  df[
+      df$longitude >= bbox[1] & 
+      df$longitude <= bbox[2] &
+      df$latitude  >= bbox[3] & 
+      df$latitude  <= bbox[4], 
+    ]
+}
+# Découpe des 3 zones
+dtaMbouzi   <- extraire_zone(dtaScaled, empriseMbouzi)
+dtaSud    <- extraire_zone(dtaScaled, empriseSud)
+dtaNord <- extraire_zone(dtaScaled, empriseNord)
+```
+
+
+```{r tew}
+
+tew6 <- computeTEW(pf, sts, dem, product = "TEWIntegrated", verbose = 0)
+
+rNord   <- crop(tew6, empriseNord)
+rSud    <- crop(tew6, empriseSud)
+rMbouzi <- crop(tew6, empriseMbouzi)
+
+altNord   <- crop(dem, empriseNord)
+altSud    <- crop(dem, empriseSud)
+altMbouzi <- crop(dem, empriseMbouzi)
+
+plotTEW(sts,tew6, dem, dynamicPlot = TRUE)
+```
+
+#### Nord de Mayotte
+
+Voici la zone du Nord de Mayotte :
+
+```{r Nord}
+plotTEW(sts, rasterProduct = rNord, dtm = altNord,   main = "Nord")
+```
+
+#### Sud de Mayotte
+
+Voici la zone du Sud de Mayotte :
+
+```{r Sud}
+plotTEW(sts, rasterProduct = rSud, dtm = altSud, main = "Sud")
+```
+
+#### Ilot Mbouzi
+
+```{r Mbouzi}
+plotTEW(sts = sts, rasterProduct = rMbouzi, dtm = altMbouzi,  main = "Mbouzi")
+```
+
+
+## Semaine 16 (27/04 au 01/05)
+
+
+### Définition du seuil de NDVI
+
+En filtrant les pixels avec un NDVI \> 0.7 avant le cyclone et en enlevant ceux situés sur la côte à une altitude \< 50 m, on obtient de bien meilleurs résultats dans nos modèle. Cependant ce seuil de NDVI pré-cyclonique est plutôt arbitraire. Pour tenter de trouver un seuil acceptable cohérent, on fait un kmeans (même si la distribution n'est pas bimodale).
+
+```{r kmeans}
+# K-means avec k=2
+set.seed(42)
+km <- kmeans(dta$dec_ndvi, centers = 2)
+dta$cluster <- factor(km$cluster)
+
+# Voir les centroïdes 
+aggregate(dec_ndvi ~ cluster, data = dta, FUN = mean)
+(0.8305349 + 0.6461856) / 2
+# [1] 0.7383603
+
+#visualiser
+hist(dta$dec_ndvi,
+     breaks = 50,
+     col    = ifelse(
+       seq(min(dta$dec_ndvi), max(dta$dec_ndvi), length.out = 50) > 0.7383603,
+       "darkgreen", "salmon"
+     ),
+     main   = "Distribution du NDVI",
+     xlab   = "NDVI pré-cyclonique",
+     ylab   = "Fréquence",
+     border = "white")
+
+abline(v = 0.7383603, col = "red",    lwd = 2, lty = 2)
+abline(v = 0.70,      col = "orange", lwd = 2, lty = 2)
+
+legend("topleft",
+       legend = c("Frontière K-means (0.738)", "Seuil actuel (0.70)"),
+       col    = c("red", "orange"),
+       lwd    = 2,
+       lty    = 2,
+       bty    = "n")
+```
+
+Le seuil de 0.7 n'était finalement pas si mal.
+
+### Modèle linéaire
+
+Le modèle linéaire utilisé pour faire les prédicitons est celui ci :
+
+```{r modelfinal}
+
+m <- lm(delta_ndvi ~ msw_max * ang6 + altitude + courbure , data = dta_train)
+summary(m)
+
+par(mfrow=c(2,2))
+plot(m)
+
+```
+
+Les conditions du modèle sont respectées, surtout le plot *'Résidus vs Fitted'*. L'homoscédasticité, la normalité des résidus et l'indépendance est respectée.
+
+### Prédictions sur jeu de test
+
+On peut maintenant tester le modèle sur le jeu de test.
+
+```{r predict}
+
+pred_test <- predict(m, newdata = dta_test)
+dta_test$pred <- pred_test
+residuals_test <- dta_test$delta_ndvi - pred_test
+dta_test$residus <- dta_test$delta_ndvi - dta_test$pred
+
+
+rmse_test <- sqrt(mean(residuals_test^2))
+ss_res <- sum(residuals_test^2)
+ss_tot <- sum((dta_test$delta_ndvi - mean(dta_test$delta_ndvi))^2)
+r2_test <- 1 - ss_res / ss_tot
+
+cat("RMSE test :", round(rmse_test, 4), "\n")
+cat("R² test   :", round(r2_test, 4), "\n")
+
+
+# visualisation
+ggplot(dta_test, aes(x = pred, y = delta_ndvi)) +
+  geom_point(alpha = 0.2, size = 0.8) +
+  geom_abline(slope = 1, intercept = 0, color = "red", linewidth = 1) +
+  geom_smooth(method = "lm", color = "steelblue", se = FALSE) +
+  labs(title = "Prédictions m vs valeurs observées (test)",
+       x = "delta_ndvi prédit", y = "delta_ndvi observé") +
+  theme_minimal()
+
+
+ggplot(dta_test, aes(x = longitude, y = latitude, color = residus)) +
+  geom_point(size = 0.5) +
+  scale_color_gradient2(low = "darkblue", mid = "white", high = "darkred", midpoint = 0) +
+  labs(title = "Résidus spatiaux m") +
+  coord_equal() +
+  theme_minimal()
+
+
+```
+
+### Extrapolation à tout Mayotte
+
+Pour étendre notre modèle à tout Mayotte et essayer de prédire les dommages de Chido sur l'entièreté de l'île, il faut préparer les varibales explicatives : *msw_max, altitude, tew, courbure*. Il faut aussif aire attention à la normalisation des données qui avaient été faite dans le jeu de données de base.
+
+```{r mayotte dta, message = FALSE, results='hide'}
+
+# altitude
+demMayotte <- rast("../data/mayotte/dem_mayotte.tif")
+mask_land <- ifel(demMayotte > 0, 1, NA)
+demMayotte <- demMayotte * mask_land
+
+# msw
+speed_layers <- pf[[grep("CHIDO_Speed", names(pf))]]
+max_speed_raster <- max(speed_layers, na.rm = TRUE)
+
+max_speed_raster <- project(max_speed_raster, demMayotte)
+vmax_aligned <- crop(max_speed_raster, demMayotte)
+mswMayotte <- mask(vmax_aligned, demMayotte)
+
+# tew6 
+tew6Mayotte <- computeTEW(pf, sts, demMayotte, product = "TEWIntegrated", angle = 6, verbose = 0)
+
+# courbure
+penteM <- terrain(demMayotte, v= "slope")
+curvMayotte <- terrain(penteM, v = "slope")
+
+# stack 
+stack_mayotte <- c(mswMayotte, tew6Mayotte, demMayotte, curvMayotte, penteM)
+names(stack_mayotte) <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+# convertir chaque couche en numeric
+stack_mayotte[["msw_max"]]  <- as.numeric(stack_mayotte[["msw_max"]])
+stack_mayotte[["ang6"]]     <- as.numeric(stack_mayotte[["ang6"]])
+stack_mayotte[["altitude"]] <- as.numeric(stack_mayotte[["altitude"]])
+stack_mayotte[["courbure"]] <- as.numeric(stack_mayotte[["courbure"]])
+stack_mayotte[["pente"]] <- as.numeric(stack_mayotte[["pente"]])
+
+```
+
+```{r predictM}
+cols <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+params_scale <- lapply(cols, function(v) {
+  list(mean = mean(dta[[v]], na.rm = TRUE),
+       sd   = sd(dta[[v]],   na.rm = TRUE))
+})
+names(params_scale) <- cols
+
+# normaliser
+stack_scaled <- stack_mayotte
+for (v in cols) {
+  stack_scaled[[v]] <- (stack_mayotte[[v]] - params_scale[[v]]$mean) / params_scale[[v]]$sd
+}
+# prediction
+pred_mayotte <- predict(stack_scaled, m, na.rm = TRUE)
+
+```
+
+```{r plot predfin, fig.align='center'}
+
+ggplot() +
+  geom_spatraster(data = pred_mayotte) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Prédit sur Mayotte (m)") +
+  coord_sf() +
+  theme_minimal()
+
+ggplot(dta_test, aes(x = longitude, y = latitude, color = delta_ndvi)) +
+  geom_point(size = 0.5) +
+  scale_color_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Observé (jeu de test)") +
+  coord_equal() +
+  theme_minimal()
+
+
+# superposé
+ggplot() +
+  geom_spatraster(data = pred_mayotte) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI prédit"
+  ) +
+  geom_point(data = dta_test, 
+             aes(x = longitude, y = latitude, color = delta_ndvi),
+             size = 0.8) +
+  scale_color_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    name     = "Delta NDVI observé"
+  ) +
+  labs(title = "Delta NDVI prédit (raster) vs observé (points)") +
+  coord_sf() +
+  theme_minimal()
+  
+
+```
+
+### Random Forest
+
+```{r RF}
+rf_model <- randomForest(
+  delta_ndvi ~ msw_max + ang6 + altitude + courbure, 
+  data = dta_train,
+  importance = TRUE, 
+  ntree = 500
+)
+
+# importance des variables
+print(rf_model)
+varImpPlot(rf_model, main = "Importance des variables (RF)")
+```
+
+##### Interprétation
+
+**%IncMSE (Mean Square Error)**\
+Pour chaque variable, l'algorithme permute aléatoirement ses valeurs et regarde à quel point l'erreur du modèle augmente. Plus la valeur sur l'axe X est élevée, plus elle est importante. Si on supprime MSW, l'erreur du modèle bondit et CURV a un impact très faible sur la précision globale. C'est l'indice le plus fiable du modèle.\
+
+Ici, *MSW* domine sur les deux tableaux donc c'est le principal prédicteur. *CURV* apporte peu d'informations utile au modèle, si il y a une simplification à faire ce sera la première à supprimer.
+
+**IncNodePurity (Pureté des noeuds)**\
+Il calcule l'amélioration totale de la réductiond e l'erreur que chaque variable apporte à chaque fois qu'elle est utilisée pour diviser un groupe de données. Les variables en haut permettent de séparer les données le plus proprement possible. L'altitude semble plus efficace pour "diviser" les données que pour garantir la précision finale par rapport à *TEW*\
+
+*TEW* contribue plus à la réduction de l'erreur globale (valeur prédictive plus élevée) tandis qu'*ALT* est plus souventutilisée pour créer des divisions nettes dans les arbres (segmente mieux)\
+
+**Différences avec LM**\
+Le modèle linéaire suppose que l'effet de l'altitude est constant c'est-à-dire que chaque mètre supplémentaire diminue la différence de NDVI de la même manière partout. Le RandomForest cherche les interactions locales donc s'il y a des seuils ou si l'altitude interagit avec d'autres variables alors le randomForest peut trouver que d'autres vraiables sont plus utiles pour affiner point par point. L'interaction *MSW x TEW* divise l'influence du *TEW* entre son effet propre et son effet combiné. *TEW* et *MSW* ont une finesse de prédiction locale supérieure comme on peut le voir dans le graphique de gauche.
+
+```{r predRF}
+# prediction
+pred_rf_test <- predict(rf_model, newdata = dta_test)
+dta_test$pred_rf <- pred_rf_test
+
+# métriques
+rmse_rf <- sqrt(mean((dta_test$delta_ndvi - pred_rf_test)^2))
+r2_rf <- 1 - (sum((dta_test$delta_ndvi - pred_rf_test)^2) / 
+                sum((dta_test$delta_ndvi - mean(dta_test$delta_ndvi))^2))
+
+cat("RF - RMSE test :", round(rmse_rf, 4), "\n")
+cat("RF - R² test    :", round(r2_rf, 4), "\n")
+
+# extrapolation
+pred_mayotte_rf <- predict(stack_scaled, rf_model, na.rm = TRUE)
+
+# visualisation
+
+ggplot() +
+  geom_spatraster(data = pred_mayotte_rf) +
+  scale_fill_gradient2(
+    low      = "darkred",
+    mid      = "white",
+    high     = "darkgreen",
+    midpoint = 0,
+    na.value = "transparent",
+    name     = "Delta NDVI"
+  ) +
+  labs(title = "Prédit sur Mayotte (RF)") +
+  coord_sf() +
+  theme_minimal()
+
+```
+
+Random Forest permet plus de nuances dans les prédictions du modèles, on peu notamment voir une perte de végétation moins importante dans le sud de l'île, ce qui est plus cohérent avec la trajectoire de Chido et ce qu'on peut voir visuellement.

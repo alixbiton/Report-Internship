@@ -1,0 +1,447 @@
+---
+title: "Mai"
+author: "Alix Biton"
+date: "2026-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Récap du mois
+
+-   Definition des seuils de classes 
+-   Visualisations finales
+-   Ecriture du rapport de stage
+-   Préparation de l'oral
+
+## Semaine 17 (04 au 07/05)
+
+```{r loadStormR,include = FALSE, results='hide'}
+devtools::load_all("/home/abiton/Documents/StormR/")
+library(terra)
+library(cluster)
+library(sf)
+library(dplyr)
+library(lme4)
+
+library(ggplot2)
+library(tidyterra)
+library(patchwork)
+
+library(randomForest)
+```
+
+```{r prep dta, include = FALSE, warning = FALSE, message=FALSE, results='hide'}
+dta <- read.csv("../data/mayotte/datasummary.csv", sep = ",", header = TRUE)
+forest_mask <- st_read("../data/mayotte/FORET_PUBLIQUE/FORET_PUBLIQUE.shp")
+reserve_mask <- st_read ("../data/mayotte/PARC_OU_RESERVE/PARC_OU_RESERVE.shp")
+
+dta_sf <- st_as_sf(
+  dta,
+  coords = c("longitude", "latitude"),
+  crs = 4326
+)
+if (st_crs(dta_sf) != st_crs(forest_mask)) {
+  dta_sf <- st_transform(dta_sf, st_crs(forest_mask))
+}
+
+#  chaque pixel reçoit l'ID de la forêt qui le contient 
+dta_joined <- st_join(dta_sf, forest_mask["ID"], join = st_within)
+dta <- st_drop_geometry(dta_joined)
+
+dtaFiltered <- dta[(dta["dec_ndvi"] > 0.7) & (dta["altitude"] >= 50),]
+scaledVar <- c("altitude","wem","pente","courbure","ang6","msw_max")
+dtaScaled <- dtaFiltered
+dtaScaled[scaledVar] <- lapply(dtaScaled[scaledVar], scale)
+
+for (v in scaledVar) {
+  dtaScaled[[v]] <- as.vector(dtaScaled[[v]])  # as.vector() supprime la structure matrix
+}
+
+set.seed(1234)
+train_id <- sample(nrow(dtaScaled), 0.7*nrow(dtaScaled))
+dta_train <- dtaScaled[train_id, ]
+dta_test <- dtaScaled[-train_id, ]
+
+#get cyclone
+dem  <- rast("../data/mayotte/dem_final.tif")
+
+#get cyclone informations (profiles)
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+#get the loi
+map_subunits <- sf::st_read("../data/storm/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+#get chido
+sts <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+pf <- spatialBehaviour(sts, product = "Profiles", verbose = 0)
+
+# models
+    #simple
+ms <- lm(delta_ndvi ~ msw_max + altitude + courbure, data = dta_train)
+
+ms_mixed <- lmer(
+  delta_ndvi ~ msw_max + altitude + courbure + (1 | ID),
+  data = dta_train,
+  REML = TRUE
+)
+    #with tew
+m <- lm(delta_ndvi ~ msw_max * ang6 + altitude + courbure , data = dta_train)
+
+m_mixed <- lmer(
+  delta_ndvi ~ msw_max * ang6 + altitude + courbure + (1 | ID),
+  data = dta_train,
+  REML = TRUE
+)
+
+
+
+# altitude
+demMayotte <- rast("../data/mayotte/dem_mayotte.tif")
+mask_land <- ifel(demMayotte > 0, 1, NA)
+demMayotte <- demMayotte * mask_land
+
+# msw
+speed_layers <- pf[[grep("CHIDO_Speed", names(pf))]]
+max_speed_raster <- max(speed_layers, na.rm = TRUE)
+
+max_speed_raster <- project(max_speed_raster, demMayotte)
+vmax_aligned <- crop(max_speed_raster, demMayotte)
+mswMayotte <- mask(vmax_aligned, demMayotte)
+
+# tew6 
+tew6Mayotte <- computeTEW(pf, sts, demMayotte,  product = "TEWIntegrated", angle = 6, verbose = 0)
+
+# courbure
+penteM <- terrain(demMayotte, v= "slope")
+curvMayotte <- terrain(penteM, v = "slope")
+
+# stack 
+stack_mayotte <- c(mswMayotte, tew6Mayotte, demMayotte, curvMayotte, penteM)
+names(stack_mayotte) <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+# convertir chaque couche en numeric
+stack_mayotte[["msw_max"]]  <- as.numeric(stack_mayotte[["msw_max"]])
+stack_mayotte[["ang6"]]     <- as.numeric(stack_mayotte[["ang6"]])
+stack_mayotte[["altitude"]] <- as.numeric(stack_mayotte[["altitude"]])
+stack_mayotte[["courbure"]] <- as.numeric(stack_mayotte[["courbure"]])
+stack_mayotte[["pente"]] <- as.numeric(stack_mayotte[["pente"]])
+
+#predict
+cols <- c("msw_max", "ang6", "altitude", "courbure", "pente")
+
+params_scale <- lapply(cols, function(v) {
+  list(mean = mean(dta[[v]], na.rm = TRUE),
+       sd   = sd(dta[[v]],   na.rm = TRUE))
+})
+names(params_scale) <- cols
+
+# normaliser
+stack_scaled <- stack_mayotte
+for (v in cols) {
+  stack_scaled[[v]] <- (stack_mayotte[[v]] - params_scale[[v]]$mean) / params_scale[[v]]$sd
+}
+
+
+forest_vect <- vect(st_transform(forest_mask, "EPSG:4326"))
+id_raster <- rasterize(forest_vect, stack_scaled, field = "ID")
+names(id_raster) <- "ID"
+dta_mayotte <- as.data.frame(c(stack_scaled, id_raster), xy = TRUE, na.rm = FALSE)
+dta_mayotte$ID <- as.factor(dta_mayotte$ID)
+
+# prediction
+pred_vector <- predict(m_mixed,
+                        newdata        = dta_mayotte,
+                        re.form        = NULL,           # effets aléatoires pour forêts connues
+                        allow.new.levels = TRUE,         # intercept moyen pour pixels hors forêt
+                        na.action      = na.pass)
+
+
+pred_mayotte <- rast(stack_scaled[["altitude"]]) 
+
+# 3. On injecte les valeurs prédites à l'intérieur
+values(pred_mayotte) <- pred_vector
+names(pred_mayotte) <- "lyr1"
+# contours et masques
+
+forest_sf <- st_transform(forest_mask, st_crs(pred_mayotte))
+reserve_sf <- st_transform(reserve_mask, st_crs(pred_mayotte))
+
+# fusionner les deux couches vecteurs en une seule (Union)
+combined_forest_reserve <- st_union(forest_sf, reserve_sf)
+# on ne garde que les pixels situés DANS l'union
+pred_foret_only <- mask(pred_mayotte, combined_forest_reserve)
+# Récupérer le contour de Mayotte (pour le fond blanc)
+mask_land <- ifel(dem > 0, 1, NA)
+contour_mayotte_sf <- st_as_sf(as.polygons(mask_land > 0))
+
+# 4. Définir les limites de vue basées sur la prédiction
+limits <- st_bbox(pred_mayotte)
+
+```
+
+### Prédictions du modèle (linéaire)
+
+Les prédictions du modèle linéaire sur les parties forestières de l'île de Mayotte peuvent être visualisées de la sorte :
+
+```{r plot prediction, echo= FALSE, message = FALSE, warning = FALSE, fig.align='center'}
+
+ggplot() +
+  geom_sf(data = contour_mayotte_sf, fill = "white", color = "black", linewidth = 0.2) +
+  
+  geom_spatraster(data = pred_foret_only) +
+  
+  geom_sf(data = combined_forest_reserve, fill = NA, color = "black", linewidth = 0.25) +
+  
+  coord_sf(
+    xlim = c(limits["xmin"], limits["xmax"]),
+    ylim = c(limits["ymin"], limits["ymax"]),
+    expand = FALSE
+  ) +
+  
+  # Échelle de couleurs
+  scale_fill_gradient2(
+    low = "darkred", 
+    mid = "white", 
+    high = "darkgreen",
+    midpoint = 0, 
+    na.value = "transparent", 
+    name = "Delta NDVI"
+  ) +
+  labs(
+    title = "Dommages (Delta NDVI) localisés en zones forestières",
+    subtitle = "Mayotte - Forêts publiques et réserves"
+  ) +
+  theme_minimal()
+```
+
+### Statistiques des dommages
+
+On peut faire des petites statistiques globales afin de connaître le jeu de déonnes de prédictions.
+
+```{r statsbasics, echo = FALSE}
+# Résolution ~27.7 m → 1 pixel ≈ 0.000277° × 0.000277°
+# Surface d'un pixel (approx. à latitude -12.8°) :
+res_m <- 0.0002777778 * 111320 * cos((-12.81) * pi / 180)
+cell_area_ha <- (res_m^2) / 10000  # en hectares
+
+vals <- values(pred_foret_only, na.rm = TRUE)
+n_valid <- length(vals)
+n_total <- ncell(pred_foret_only)
+
+stats_globales <- data.frame(
+  indicateur = c("N pixels valides", "N pixels total", "% couverture",
+                 "Minimum", "Maximum", "Moyenne", "Médiane",
+                 "Écart-type", "Q5", "Q25", "Q75", "Q95"),
+  valeur = c(
+    n_valid,
+    n_total,
+    round(100 * n_valid / n_total, 1),
+    round(min(vals), 4),
+    round(max(vals), 4),
+    round(mean(vals), 4),
+    round(median(vals), 4),
+    round(sd(vals), 4),
+    round(quantile(vals, 0.05), 4),
+    round(quantile(vals, 0.25), 4),
+    round(quantile(vals, 0.75), 4),
+    round(quantile(vals, 0.95), 4)
+  )
+)
+
+print(stats_globales)
+```
+
+On peut aussi classer les dommages selon plusieurs seuils de dommages en se basant sur les travaux de *Peereman,2020* : \\
+
+**Très fort \< -0.80 \< Fort \< -0.60 \< Modéré \< -0.40 \< Faible \< -0.20 \< Très faible \< 0 \< Nul/ gain**
+
+```{r histodegats, echo = FALSE, fig.align='center'}
+
+seuils <- c(-Inf, -0.80, -0.60, -0.40, -0.20, 0, Inf)
+labels_classes <- c("Très fort (< -0.80)",
+                    "Fort (-0.80 à -0.60)",
+                    "Modéré (-0.60 à -0.40)",
+                    "Faible (-0.40 à -0.20)",
+                    "Très faible (-0.20 à 0)",
+                    "Nul / gain (> 0)")
+
+df_vals <- data.frame(ndvi = vals)
+df_vals$classe <- cut(df_vals$lyr1,
+                      breaks = seuils,
+                      labels = labels_classes,
+                      right  = TRUE,
+                      include.lowest = TRUE)
+
+stats_classes <- df_vals %>%
+  group_by(classe) %>%
+  summarise(
+    n_pixels    = n(),
+    surface_ha  = round(n() * cell_area_ha, 1),
+    pct_surface = round(100 * n() / n_valid, 1),
+    mean_dNDVI  = round(mean(lyr1), 4),
+    min_dNDVI   = round(min(lyr1), 4),
+    max_dNDVI   = round(max(lyr1), 4)
+  ) %>%
+  arrange(desc(row_number()))  # ordre décroissant dommages
+
+print(stats_classes)
+
+# Surface totale en dommages (delta NDVI < 0)
+surface_endommagee_ha <- sum(stats_classes$surface_ha[
+  stats_classes$classe != "Nul / gain (> 0)"])
+cat("\nSurface totale endommagée :", round(surface_endommagee_ha, 1), "ha\n")
+
+
+#### histogramme 
+couleurs_classes <- c(
+  "Nul / gain (> 0)" = "#2E8B57",
+  "Très faible (-0.20 à 0)"   = "#F5E642",
+  "Faible (-0.40 à -0.20)"   = "#F5A623",
+  "Modéré (-0.60 à -0.40)"   = "#D4550F",
+  "Fort (-0.80 à -0.60)"     = "#A13A07",
+  "Très fort (< -0.80)"     = "#4A1B00"
+)
+
+# Note : Assurez-vous que votre colonne 'classe' dans df_vals 
+# soit recalculée selon ces nouveaux seuils avant de plot.
+
+p_histo <- ggplot(df_vals, aes(x = lyr1, fill = classe)) +
+  geom_histogram(binwidth = 0.005, color = "white", linewidth = 0.1) +
+  scale_fill_manual(
+    values = couleurs_classes, 
+    name = "Classe de dommages",
+    breaks = names(couleurs_classes) # Force l'ordre dans la légende
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black", linewidth = 0.7) +
+  annotate("text", x = 0.005, y = Inf, label = "Aucun dommage →", 
+           hjust = 0, vjust = 1.5, size = 3.5, color = "darkgreen") +
+  annotate("text", x = -0.005, y = Inf, label = "← Dommages", 
+           hjust = 1, vjust = 1.5, size = 3.5, color = "#D4550F") +
+  labs(
+    title    = "Distribution du delta NDVI prédit — Forêts et réserves de Mayotte",
+    subtitle = "Nouvelle classification des dommages (seuils par pas de 0.2)",
+    x        = "Delta NDVI (NDVIpost − NDVIpre)",
+    y        = "Nombre de pixels"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom",
+        plot.title    = element_text(face = "bold"),
+        panel.grid.minor = element_blank())
+
+print(p_histo)
+
+
+```
+
+A partir de ces seuils, on peut donc revisualiser ces dommages avec les seuils :
+
+```{r cartedommages, echo = FALSE, warning = FALSE, message = FALSE, fig.align='center'}
+# Reclassification en raster de classes
+r_classes <- classify(pred_foret_only,
+                      rcl = matrix(c(-Inf,  -0.80, 1,
+                                     -0.80, -0.60, 2,
+                                     -0.60, -0.40, 3,
+                                     -0.40,  -0.20, 4,
+                                     -0.20,  0.00, 5,
+                                      0.00,   Inf, 6),
+                                   ncol = 3, byrow = TRUE))
+
+### avec ggplot 
+
+
+# On prépare le raster en fixant les 6 niveaux
+
+
+my_colors <- c(
+  "1" = "#4A1B00",
+  "2" = "#7B2D00",
+  "3" = "#D4550F",
+  "4" = "#F5A623",
+  "5" = "#F5E642",
+  "6" = "#2E8B57"
+)
+
+# 2. On fait de même pour les étiquettes
+my_labels <- c(
+  "1" = "Très fort (< -0.80)",
+  "2" = "Fort (-0.80 à -0.60)",
+  "3" = "Modéré (-0.60 à -0.40)",
+  "4" = "Faible (-0.40 à -0.20)",
+  "5" = "Très faible (-0.20 à 0)",
+  "6" = "Nul / gain (> 0)"
+)
+
+# 3. Le GGPLOT
+ggplot() +
+  geom_sf(data = contour_mayotte_sf, fill = "white", color = "black", linewidth = 0.2) +
+  
+  # On s'assure que lyr1 est bien traité comme un caractère/facteur ici
+  geom_spatraster(data = mutate(r_classes, lyr1 = as.character(lyr1))) +
+  
+  geom_sf(data = combined_forest_reserve, fill = NA, color = "black", linewidth = 0.25) +
+  
+  coord_sf(
+    xlim = c(limits["xmin"], limits["xmax"]),
+    ylim = c(limits["ymin"], limits["ymax"]),
+    expand = FALSE
+  ) +
+  
+  scale_fill_manual(
+    values = my_colors,
+    labels = my_labels,
+    breaks = names(my_colors), # On force l'affichage de TOUTES les clés listées dans my_colors
+    drop   = FALSE,            # On demande de ne pas jeter les niveaux vides
+    na.value = "transparent",
+    name   = "Classe delta NDVI"
+  ) +
+  labs(
+    title = "Dommages cycloniques prédits en zones forestières",
+    subtitle = "Mayotte — Forêts publiques et réserves"
+  ) +
+  theme_minimal()
+
+```
+
+### Plan du rapport
+
+-   Page de garde
+-   Sommaire + table des figures
+-   Remerciements
+-   Résumé (type abstract)
+-   Introduction
+-   Matériel et Méthodes
+    -   Données de végétation et de MNT (Sentinel et DEM)
+    -   Données cycloniques + implémentation de la fonction TEW (en détails ++?)
+    -   Jeu de données
+    -   Modèle(s) utilsé(s) et analyses des prédictions
+    -   Zones d'intérêts
+-   Résultats
+    -   Comportement de Chido ? (temporal, spatial Behaviour, TEW...)
+    -   Mosaique zones d'intérêts (3x3 altitude, TEW, deltaNDVI)
+    -   Résultats du/des modèle(s) (résidus, corrplot..)
+    -   Prédictions du/des modèle(s)
+    -   Statistiques des dommages
+-   Discussion
+-   Conclusion
+-   Contributions
+-   Intelligence Artificielle
+-   Bibliographie
+-   Annexes
