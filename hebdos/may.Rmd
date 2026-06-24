@@ -9,10 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 # Récap du mois
 
--   Definition des seuils de classes 
+-   Definition des seuils de classes
 -   Visualisations finales
 -   Ecriture du rapport de stage
 -   Préparation de l'oral

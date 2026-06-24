@@ -188,27 +188,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../work/mbouzi.html">
  <span class="dropdown-text">Mbouzi</span></a>
   </li>  
-        <li class="dropdown-header">— AVRIL —</li>
         <li>
-    <a class="dropdown-item" href="../hebdos/hebdo_12.Rmd">
- <span class="dropdown-text">Semaine 12&amp;13</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../hebdos/hebdo_15.Rmd">
- <span class="dropdown-text">Semaine 15</span></a>
+    <a class="dropdown-item" href="../hebdos/april.html">
+ <span class="dropdown-text">Avril</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../work/models.html">
  <span class="dropdown-text">Tests modèles</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../hebdos/hebdo_16.Rmd">
- <span class="dropdown-text">Semaine 16</span></a>
-  </li>  
-        <li class="dropdown-header">— MAI —</li>
-        <li>
-    <a class="dropdown-item" href="../hebdos/hebdo_17.Rmd">
- <span class="dropdown-text">Semaine 17</span></a>
+    <a class="dropdown-item" href="../hebdos/may.html">
+ <span class="dropdown-text">Mai</span></a>
   </li>  
     </ul>
   </li>
@@ -274,21 +264,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="copernicus-dem30" class="level2">
 <h2 class="anchored" data-anchor-id="copernicus-dem30">Copernicus DEM30</h2>
-<p>To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from : <a href="http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000" class="uri">http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000</a></p>
+<p>To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from the function <code>getLOI</code> of <code>StormR</code> package.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> p<span class="sc">$</span><span class="fu">load_collection</span>(<span class="at">id =</span> <span class="st">'COPERNICUS_30'</span>,</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">spatial_extent =</span> <span class="fu">list</span>(<span class="at">west=</span><span class="fl">44.98</span>, </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">south=</span><span class="sc">-</span><span class="fl">13.01</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">east=</span><span class="fl">45.30</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">north=</span><span class="sc">-</span><span class="fl">12.61</span>),</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">bands =</span> <span class="fu">c</span>(<span class="st">"DEM"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(StormR)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>sds <span class="ot">&lt;-</span> <span class="fu">defStormsDataset</span>()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>st <span class="ot">&lt;-</span> <span class="fu">defStormsList</span>(<span class="at">sds =</span> sds, <span class="at">loi =</span> <span class="st">"Vanuatu"</span>, <span class="at">names =</span> <span class="st">"PAM"</span>, <span class="at">verbose =</span> <span class="dv">0</span>, <span class="at">maxDist =</span> <span class="dv">50</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#get the bbox from the function getLOI of StormR</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>bbox <span class="ot">&lt;-</span> sf<span class="sc">::</span><span class="fu">st_bbox</span>(<span class="fu">getLOI</span>(st)) <span class="sc">+</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.05</span>, <span class="sc">-</span><span class="fl">0.05</span>, <span class="fl">0.05</span>, <span class="fl">0.05</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The bounding box can also be extracted from : <a href="http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000" class="uri">http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000</a>. This can be useful if the LOI from <code>StormR</code> is too large.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> p<span class="sc">$</span><span class="fu">load_collection</span>(<span class="at">id =</span> <span class="st">'COPERNICUS_30'</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">spatial_extent =</span> <span class="fu">list</span>(<span class="at">west=</span>bbox[[<span class="dv">1</span>]], </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">south=</span>bbox[[<span class="dv">2</span>]], </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">east=</span>bbox[[<span class="dv">3</span>]], </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                                               <span class="at">north=</span>bbox[[<span class="dv">4</span>]]),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                         <span class="at">bands =</span> <span class="fu">c</span>(<span class="st">"DEM"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Finally, the data can be exported to the preferred format and saved to the local drive.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> p<span class="sc">$</span><span class="fu">save_result</span>(<span class="at">data =</span> data, <span class="at">format =</span> <span class="st">"GTiff"</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># save the tif file</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">compute_result</span>(<span class="at">graph =</span> result, <span class="at">output_file =</span> <span class="st">"../filepath/dtm.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>result <span class="ot">=</span> p<span class="sc">$</span><span class="fu">save_result</span>(<span class="at">data =</span> data, <span class="at">format =</span> <span class="st">"GTiff"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># save the tif file</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">compute_result</span>(<span class="at">graph =</span> result, <span class="at">output_file =</span> <span class="st">"../filepath/dtm.tif"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

@@ -49,6 +49,7 @@ website:
           # --- AVRIL ---
           - href: hebdos/april.Rmd
             text: "Avril"
+          - href: work/models.Rmd
             text: "Tests modèles"
           
           # --- MAI ---
@@ -57,7 +58,7 @@ website:
       
       - href: about.qmd
         text: "A propos"
-
+        
       
 format:
   html:

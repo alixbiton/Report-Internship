@@ -23,14 +23,25 @@ p = processes()
 
 ## Copernicus DEM30
 
-To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from : <http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000>
+To retrieve Copernicus DEM30 elevation data, the Location of Interest (LOI) needs to be defined. To obtain the bounding box for the target area (here, Mayotte), the coordinates have been extracted from the function `getLOI` of `StormR` package. 
+
+```{r st, eval=FALSE}
+library(StormR)
+sds <- defStormsDataset()
+st <- defStormsList(sds = sds, loi = "Vanuatu", names = "PAM", verbose = 0, maxDist = 50)
+
+#get the bbox from the function getLOI of StormR
+bbox <- sf::st_bbox(getLOI(st)) + c(-0.05, -0.05, 0.05, 0.05)
+```
+
+The bounding box can also be extracted from : <http://bboxfinder.com/#0.000000,0.000000,0.000000,0.000000>. This can be useful if the LOI from `StormR` is too large. 
 
 ```{r data, eval=FALSE}
 data = p$load_collection(id = 'COPERNICUS_30',
-                         spatial_extent = list(west=44.98, 
-                                               south=-13.01,
-                                               east=45.30,
-                                               north=-12.61),
+                         spatial_extent = list(west=bbox[[1]], 
+                                               south=bbox[[2]], 
+                                               east=bbox[[3]], 
+                                               north=bbox[[4]]),
                          bands = c("DEM"))
 ```
 

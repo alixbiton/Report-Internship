@@ -86,7 +86,7 @@ sds <- defStormsDataset(
 )
 
 #get the loi
-map_subunits <- sf::st_read("/home/abiton/Téléchargements/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+map_subunits <- sf::st_read("../data/storm/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
 which(map_subunits$SUBUNIT=="Mayotte")
 loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
 

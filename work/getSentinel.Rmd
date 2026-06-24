@@ -48,60 +48,113 @@ When utilizing the SCL band, it is recommended to retain only pixels 4, 5, 6, an
 
 ### Function to extract data
 
-The following function is used to extract the NDVI data:"
+The following function is used to extract the NDVI data. This function called here `mosaicVegetation` is using these parameters :
 
-```{r function,warning = FALSE, results = FALSE, message=FALSE}
-bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61) #loi
+-   `sts` : stormsList object from `defStormsList` function of `StormR` package.
+-   `period` : the 30 days period "before" (default) or "after" the storm.
+-   `filename` : character. name of the output file.
+-   `buffer_box` : numeric. buffer area around the loi (default, 0.05).
+-   `cloud_cover` : numeric. % of cloud cover percentage allowed (default, 30).
+
+Before running this function, `sts` is needed, the storm "Chido" here can be extracted like this : 
+```{r message = FALSE, warning=FALSE, results='hide'}
+library(StormR)
+
+sds <- defStormsDataset(
+  filename = "~/Documents/ibtracs.ALL.list.v04r01.csv",
+  fields =c(names = "NAME", seasons = "SEASON", isoTime = "ISO_TIME",
+            lon = "LON", lat = "LAT", msw = "USA_WIND", basin = "BASIN",
+            rmw = "USA_RMW", pressure = "USA_PRES", poci = "USA_POCI"),
+  basin = "SI",
+  seasons = c(2023,as.numeric(format(Sys.time(),"%Y"))),
+  verbose = 1
+)
+
+#get the loi
+map_subunits <- sf::st_read("../data/storm/ne_10m_admin_0_map_subunits/ne_10m_admin_0_map_subunits.shp")
+which(map_subunits$SUBUNIT=="Mayotte")
+loiSf <- map_subunits[264,]$geometry |> sf::st_as_sf()
+
+#get chido
+st <- defStormsList(
+  sds = sds,
+  loi = loiSf,
+  names = c("CHIDO")
+)
+
+```
+
+
+Be careful, the loi can be too large for OpenEO. In that case, change manually the bbox by defining it like that in the function: 
+```{r, eval = FALSE}
+bbox = list(west=44.98, south=-13.01, east=45.30, north=-12.61)
+```
+
+```{r function,eval = FALSE, warning = FALSE, results = FALSE, message=FALSE}
 folder_out = "../path_file" #local folder to stock
 
-
-mosaicVegetation = function(start_date, end_date, filename) {
+mosaicVegetation = function(sts, period = "before", filename = "ndvi_output.tif", buffer_bbox = 0.05, cloud_cover = 30) {
   
+  #define bounding box
+  bbox <- sf::st_bbox(getLOI(st)) + c(-buffer_bbox, -buffer_bbox, buffer_bbox, buffer_bbox)
+  spatial_extent <- setNames(as.list(bbox), c("west", "south", "east", "north"))
+  
+  #define temporal extent
+  storm_dates <- as.Date(sts@data[[1]]@obs.all$iso.time)
+  
+  if (period == "before") {
+    start_date <- min(storm_dates) - 30 
+    end_date   <- min(storm_dates)
+  } else if (period == "after") {
+    start_date <- max(storm_dates)
+    end_date   <- max(storm_dates) + 30
+  }
+  
+  # define data
   data = p$load_collection(
     id = "SENTINEL2_L2A",
-    spatial_extent = bbox,
+    spatial_extent = spatial_extent,
     temporal_extent = list(start_date, end_date),
     bands = c("B04", "B08", "SCL")
     #properties = list("eo:cloud_cover" = function(x) x <= 30) #to use or no depending on the treatment
   )
   
   # create mask
-   cloud_mask = p$reduce_dimension(
-     data = data,
-     dimension = "bands",
-     reducer = function(data, context) {
-       scl = data[3] 
-  
-       # only safe classes 
-       is_safe = p$or(
-         p$eq(scl, 4), # vegetated
-         p$or(
-           p$eq(scl, 5), # naked soil
-           p$or(p$eq(scl, 6), p$eq(scl, 7))# water or unclassified
-         )
-       )
-
-       return(p$not(is_safe))
-     }
-   )
-     # computing ndvi
+  cloud_mask = p$reduce_dimension(
+    data = data,
+    dimension = "bands",
+    reducer = function(data, context) {
+      scl = data[3] 
+      
+      # only safe classes 
+      is_safe = p$or(
+        p$eq(scl, 4), # vegetated
+        p$or(
+          p$eq(scl, 5), # naked soil
+          p$or(p$eq(scl, 6), p$eq(scl, 7))# water or unclassified
+        )
+      )
+      
+      return(p$not(is_safe))
+    }
+  )
+  # computing ndvi
   data_only = p$filter_bands(data, bands = c("B04", "B08"))
   data_cleaned = p$mask(data = data_only, mask = cloud_mask)
   
   ndvi_cube = p$ndvi(data = data_cleaned, nir = "B08", red = "B04") #can be replace by the formula
-    #manually compute ndvi
+  #manually compute ndvi
   #spectral_reduce = p$reduce_dimension(data = data, dimension = "bands",reducer = function(data,context) {
   #  b8 = data[1] #nir
-   # b4 = data[2] #red
-    
-#    return((b8-b4)/(b8+b4))
- # })
+  # b4 = data[2] #red
+  
+  #    return((b8-b4)/(b8+b4))
+  # })
   
   # save data
-  result = p$save_result(data = ndvi_cube, format = "NetCDF")
+  result = p$save_result(data = ndvi_cube, format = "GTiff")
   compute_result(graph = result, output_file = file.path(folder_out, filename))
 }
-
 ```
 
 For example, using a defined LOI, a mosaic reconstruction can be performed for two distinct periods: before and after the cyclone of interest (here, Chido 12/2024).
@@ -110,10 +163,10 @@ For example, using a defined LOI, a mosaic reconstruction can be performed for t
 # for the cyclone chido, need to find dates without to much clouds
 
 # before chido
-mosaicVegetation("2024-10-22", "2024-12-10", "ndvi_before_chido.tif")
+mosaicVegetation(st, period = "before", filename = "ndvi_before_chido.tif")
 
 # after chido
-mosaicVegetation("2025-01-01", "2025-01-31", "ndvi_after_chido.tif")
+mosaicVegetation(st, period = "after", filename = "ndvi_after_chido.tif")
 ```
 
 ### Output

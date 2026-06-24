@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 # Récap du mois
 
 -   Implémentation produit `Integrated`
@@ -138,7 +137,6 @@ Dans le package `StormR` la direction est "à l'envers" car elle indique la dire
 
 Une fois réglé, la direction du vent indique la provenance du vent (**from**) avec le Nord à 0° et qui se lit dans le sens des aiguilles d'une montre.
 
-
 ## Semaine 11 (23-27/03)
 
 ### Objectifs
@@ -211,4 +209,3 @@ summary(mkurt)
 ### Zones d'études possibles ?
 
 Il faut que les zones d'études soient une zone forestière avec une différence de NDVI marquée c'est-à-dire significative une exposition topographique plutôt marquée (altitude élevée, plus que pour Mbouzi).
-

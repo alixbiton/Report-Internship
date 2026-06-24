@@ -76,13 +76,13 @@ plot(dtm, main = "DTM of Réunion",
 
 Topographic exposure to wind (TEW) index can be computed for each hurricane thanks to the `computeTEW`function.
 
-```{r tew}
+```{r tew, message= FALSE, warning=FALSE, results='hide'}
 tewAll <- computeTEW(sp, sts, dtm, product = "TEWIntegrated", verbose = 0)
 ```
 
 TEW can be plotted individually to see how the hurricane impacted the island. Here a few examples :
 
-```{r plottew, fig.align='center'}
+```{r plottew, warning = FALSE, message = FALSE, fig.align='center'}
 par(mfrow=c(1,2))
 plotTEW(sts, tewAll$FREDDY_TEW_Integrated, dtm, main = "FREDDY")
 plotTEW(sts, tewAll$BELAL_TEW_Integrated, dtm, main = "BELAL")

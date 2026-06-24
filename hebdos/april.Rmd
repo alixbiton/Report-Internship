@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 # Récap du mois
 
 -   Masque réserve et parc par Thani
@@ -48,7 +47,6 @@ map_subunits <- sf::st_read("../data/storm/ne_10m_admin_0_map_subunits/ne_10m_ad
 
 
 ```
-
 
 ## Semaine 12&13 (30/03 au 11/04)
 
@@ -520,8 +518,6 @@ cat("\nTop 10 des pas de temps les plus contributeurs :\n")
 print(top10)
 ```
 
-
-
 ## Semaine 15 (20/04 au 24/04)
 
 ### Filtrer le jeu de données
@@ -745,7 +741,6 @@ dtaSud    <- extraire_zone(dtaScaled, empriseSud)
 dtaNord <- extraire_zone(dtaScaled, empriseNord)
 ```
 
-
 ```{r tew}
 
 tew6 <- computeTEW(pf, sts, dem, product = "TEWIntegrated", verbose = 0)
@@ -783,9 +778,7 @@ plotTEW(sts, rasterProduct = rSud, dtm = altSud, main = "Sud")
 plotTEW(sts = sts, rasterProduct = rMbouzi, dtm = altMbouzi,  main = "Mbouzi")
 ```
 
-
 ## Semaine 16 (27/04 au 01/05)
-
 
 ### Définition du seuil de NDVI
 
